@@ -6,8 +6,8 @@ st.set_page_config(page_title="Milanov - Portal Financeiro", layout="centered")
 
 # LINKS DIRETOS PARA AS ABAS DA PLANILHA (VIA EXPORTAÇÃO CSV)
 # Substituímos o con.gsheets por leitura direta do Pandas para evitar erros de permissão
-URL_USUARIOS = "https://docs.google.com/spreadsheets/d/1H8wGTvpn7TIFvk35nO2J8U45VGUqNTb-IcE7-EFYQik/gviz/tq?tqx=out:csv&gid=235000269"
-URL_AGENTES = "https://docs.google.com/spreadsheets/d/1H8wGTvpn7TIFvk35nO2J8U45VGUqNTb-IcE7-EFYQik/gviz/tq?tqx=out:csv&gid=0"
+URL_USUARIOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL6ftgznAq3Z-q8iWajnshFvGeRPXw_Gl7GeZydA-9qa18nOsa4Wb5xqCQ93VpC5V8YZOl7w6xROtb/pub?output=csv"
+URL_AGENTES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL6ftgznAq3Z-q8iWajnshFvGeRPXw_Gl7GeZydA-9qa18nOsa4Wb5xqCQ93VpC5V8YZOl7w6xROtb/pub?output=csv"
 
 def carregar_dados():
     try:
