@@ -14,7 +14,7 @@ if not st.session_state.auth_fin:
     u = st.text_input("Usuário")
     p = st.text_input("Senha", type="password")
     if st.button("Entrar"):
-        df_u = conn.read(worksheet="Usuarios")
+        df_u = conn.read()
         user = df_u[(df_u['USUARIO'] == u) & (df_u['SENHA'].astype(str) == p)]
         if not user.empty and user.iloc[0]['DEPARTAMENTO'] in ['FINANCEIRO', 'ADMIN']:
             st.session_state.auth_fin = True
