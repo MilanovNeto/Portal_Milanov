@@ -4,13 +4,15 @@ import pandas as pd
 # CONFIGURAÇÃO DA PÁGINA
 st.set_page_config(page_title="Milanov Serviços Administrativos", layout="centered")
 
-# LINK AJUSTADO PARA FORMATO CSV (DADOS PUROS)
-SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL6ftgznAq3Z-q8iWajnshFvGeRPXw_Gl7GeZydA-9qa18nOsa4Wb5xqCQ93VpC5V8YZ0l7w6xR0tb/pub?output=csv"
+# LINK CORRIGIDO PARA FORMATO DE DADOS (CSV)
+SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSL6ftgznAq3Z-q8iWajnshFvGeRPXw_Gl7GeZydA-9qa18nOsa4Wb5xqCQ93VpC5V8YZOl7w6xROtb/pub?output=csv"
 
 def carregar_dados():
     try:
         # Lê a planilha diretamente
         df = pd.read_csv(SHEET_URL)
+        # Remove espaços em branco dos nomes das colunas
+        df.columns = df.columns.str.strip().upper()
         return df
     except Exception as e:
         st.error(f"Erro ao conectar com a planilha: {e}")
@@ -23,7 +25,6 @@ def login():
 
     with st.container():
         st.subheader("Acesso Restrito")
-        # .upper() para garantir que funcione mesmo se digitar em minúsculo
         usuario_input = st.text_input("Usuário").strip().upper()
         senha_input = st.text_input("Senha", type="password").strip()
         botao_entrar = st.button("Entrar")
@@ -32,10 +33,10 @@ def login():
             df_usuarios = carregar_dados()
             
             if df_usuarios is not None:
-                # Verificação exata baseada na sua planilha (USUARIO, SENHA, DEPARTAMENTO)
+                # Verificação baseada na sua planilha (USUARIO, SENHA, DEPARTAMENTO)
                 validacao = df_usuarios[
-                    (df_usuarios['USUARIO'].astype(str).str.upper() == usuario_input) & 
-                    (df_usuarios['SENHA'].astype(str) == senha_input)
+                    (df_usuarios['USUARIO'].astype(str).str.strip().str.upper() == usuario_input) & 
+                    (df_usuarios['SENHA'].astype(str).str.strip() == senha_input)
                 ]
                 
                 if not validacao.empty:
@@ -47,7 +48,7 @@ def login():
                 else:
                     st.error("Usuário ou Senha incorretos.")
             else:
-                st.error("Erro na base de dados. Verifique a publicação da planilha.")
+                st.error("Erro ao carregar banco de dados.")
 
 def area_logada():
     st.sidebar.title(f"Olá, {st.session_state['usuario']}")
@@ -59,7 +60,6 @@ def area_logada():
     st.title("📊 Painel de Gestão")
     st.success(f"Acesso autorizado: {st.session_state['depto']}")
     st.write("Conexão com a planilha Milanov estabelecida com sucesso.")
-    st.info("Os seus relatórios financeiros aparecerão nesta área.")
 
 # CONTROLE DE ACESSO
 if 'logado' not in st.session_state:
