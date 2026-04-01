@@ -3,3 +3,6 @@ pandas
 st-gsheets-connection
 openpyxl
 xlsxwriter
+streamlit
+pandas
+openpyxl
