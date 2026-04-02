@@ -5,7 +5,7 @@ import io
 import os
 
 # Configuração da página
-st.set_page_config(page_title="Portal Milanov v7.0", layout="wide")
+st.set_page_config(page_title="Portal Milanov v7.1", layout="wide")
 
 # --- FUNÇÕES DE APOIO ---
 def limpar_texto(txt):
@@ -47,7 +47,6 @@ if not st.session_state.autenticado:
     
     if st.button("Entrar"):
         if df_usuarios is not None:
-            # Busca o usuário ignorando maiúsculas/minúsculas
             user_row = df_usuarios[df_usuarios['USUARIO'].apply(limpar_texto) == limpar_texto(u)]
             if not user_row.empty and str(user_row.iloc[0]['SENHA']).strip() == str(p).strip():
                 st.session_state.autenticado = True
@@ -64,11 +63,10 @@ st.header(f"📊 Painel de Auditoria Milanov")
 arq_corr = st.file_uploader("📁 Subir Relatório da Corretora (Excel)", type=['xlsx'])
 
 if arq_corr and df_cadastro is not None:
-    # 1. Leitura e Normalização do Relatório da Corretora
+    # 1. Leitura e Normalização
     df_raw = pd.read_excel(arq_corr)
     df_raw = normalizar_colunas(df_raw)
     
-    # Tratamento da Data
     if 'DATA' in df_raw.columns:
         df_raw['DATA'] = pd.to_datetime(df_raw['DATA'])
         st.sidebar.header("📅 Período")
@@ -78,19 +76,15 @@ if arq_corr and df_cadastro is not None:
         if len(periodo) == 2:
             df_raw = df_raw[(df_raw['DATA'].dt.date >= periodo[0]) & (df_raw['DATA'].dt.date <= periodo[1])]
     
-    # Parâmetros Financeiros
     st.sidebar.markdown("---")
     v_dolar_haiti = st.sidebar.number_input("💵 Dólar Haiti (BRL)", value=5.48)
     v_conv_moeda = st.sidebar.number_input("🔄 Moeda Local -> USD", value=1.0)
 
     # 2. CRUZAMENTO (MERGE)
-    # Garantimos que a chave de ligação esteja limpa
     df_raw['REALIZADO_POR'] = df_raw['REALIZADO_POR'].apply(limpar_texto)
     df_cadastro['REALIZADO_POR'] = df_cadastro['REALIZADO_POR'].apply(limpar_texto)
-    
     df_final = pd.merge(df_raw, df_cadastro, on='REALIZADO_POR', how='left')
 
-    # Filtro por Comercial
     if 'COMERCIAL' in df_final.columns:
         lista_com = ["TODOS"] + sorted(df_final['COMERCIAL'].dropna().unique().tolist())
         sel_com = st.sidebar.selectbox("Filtrar Comercial:", lista_com)
@@ -104,7 +98,6 @@ if arq_corr and df_cadastro is not None:
         custo_brl = row.get('COSTO_DE_ENVIO_BRL', 0)
         v_usd = row.get('VALOR_DESTINO', 0) / v_conv_moeda
         pais = limpar_texto(row.get('PAIS_DESTINO', ''))
-        # Volume calculado sobre o que foi filtrado na tela
         vol = len(df_final[df_final['REALIZADO_POR'] == row['REALIZADO_POR']])
         
         if pais == 'HAITI':
@@ -117,6 +110,7 @@ if arq_corr and df_cadastro is not None:
         p = 0.30 if vol <= 50 else (0.50 if vol <= 100 else 0.60)
         return custo_brl * p
 
+    # Criando as colunas de cálculo
     df_final['COMISSAO_AGENTE'] = df_final.apply(motor_v6_5, axis=1)
     df_final['COMISSAO_COMERCIAL'] = df_final.get('REGRA_FIXO_COMERCIAL', 0)
 
@@ -134,37 +128,21 @@ if arq_corr and df_cadastro is not None:
         'TOTAL_A_PAGAR': 'R$ {:.2f}'
     }), use_container_width=True)
 
-    # 5. INVESTIGAÇÃO E DOWNLOAD POR AGENTE
+    # 5. INVESTIGAÇÃO E DOWNLOAD POR AGENTE (COM COLUNA DE COMISSÃO)
     st.markdown("---")
     with st.expander("🔍 Ver Operações Detalhadas e Baixar Relatório do Agente"):
         agente_sel = st.selectbox("Escolha um Agente:", ["Selecione..."] + df_resumo['REALIZADO_POR'].tolist())
         
         if agente_sel != "Selecione...":
+            # Filtra os dados do agente
             df_agente = df_final[df_final['REALIZADO_POR'] == agente_sel].copy()
             
-            # Mostra o total conforme solicitado
+            # Mostra total na tela
             total_ag = df_agente['COMISSAO_AGENTE'].sum()
             st.markdown(f"### Total de Comissões: {agente_sel}")
             st.title(f"R$ {total_ag:,.2f}")
 
-            # Tabela formatada
-            cols_show = ['DATA', 'PAIS_DESTINO', 'VALOR_DESTINO', 'COMISSAO_AGENTE']
-            st.table(df_agente[cols_show].style.format({
-                'VALOR_DESTINO': 'R$ {:.2f}', 
-                'COMISSAO_AGENTE': 'R$ {:.2f}'
-            }))
-
-            # Função para exportar Excel
-            def converter_excel(df):
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    df.to_excel(writer, index=False, sheet_name='Fechamento')
-                return output.getvalue()
-
-            # Botão de download filtrado
-            st.download_button(
-                label=f"📥 Baixar Relatório - {agente_sel}",
-                data=converter_excel(df_agente),
-                file_name=f"Fechamento_{agente_sel}_{datetime.now().strftime('%d_%m_%Y')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            # Define quais colunas vão para a tabela E para o Excel (incluindo a comissão)
+            colunas_relatorio = list(df_raw.columns) # Todas as originais
+            if 'COMISSAO_AGENTE' not in colunas_relatorio:
+                colunas_relatorio.append('COMISSA
