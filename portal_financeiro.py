@@ -128,21 +128,22 @@ if arq_corr and df_cadastro is not None:
         'TOTAL_A_PAGAR': 'R$ {:.2f}'
     }), use_container_width=True)
 
-    # 5. INVESTIGAÇÃO E DOWNLOAD POR AGENTE (COM COLUNA DE COMISSÃO)
+    # 5. INVESTIGAÇÃO E DOWNLOAD POR AGENTE
     st.markdown("---")
     with st.expander("🔍 Ver Operações Detalhadas e Baixar Relatório do Agente"):
         agente_sel = st.selectbox("Escolha um Agente:", ["Selecione..."] + df_resumo['REALIZADO_POR'].tolist())
         
         if agente_sel != "Selecione...":
-            # Filtra os dados do agente
             df_agente = df_final[df_final['REALIZADO_POR'] == agente_sel].copy()
             
-            # Mostra total na tela
             total_ag = df_agente['COMISSAO_AGENTE'].sum()
             st.markdown(f"### Total de Comissões: {agente_sel}")
             st.title(f"R$ {total_ag:,.2f}")
 
-            # Define quais colunas vão para a tabela E para o Excel (incluindo a comissão)
-            colunas_relatorio = list(df_raw.columns) # Todas as originais
-            if 'COMISSAO_AGENTE' not in colunas_relatorio:
-                colunas_relatorio.append('COMISSA
+            # Define as colunas que vão para o Excel
+            colunas_para_excel = list(df_raw.columns)
+            if 'COMISSAO_AGENTE' not in colunas_para_excel:
+                colunas_para_excel.append('COMISSAO_AGENTE')
+
+            # Exibe prévia na tela
+            st.table(df_agente[['DATA', 'PAIS_DESTINO', 'VALOR_
