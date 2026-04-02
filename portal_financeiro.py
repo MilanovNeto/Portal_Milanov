@@ -5,14 +5,13 @@ import io
 import os
 
 # Configuração da página
-st.set_page_config(page_title="Portal Milanov v7.4", layout="wide")
+st.set_page_config(page_title="Portal Milanov v7.5", layout="wide")
 
 # --- FUNÇÕES DE APOIO ---
 def limpar_texto(txt):
     return str(txt).strip().upper()
 
 def normalizar_colunas(df):
-    """Remove espaços e coloca nomes das colunas em MAIÚSCULO"""
     df.columns = [str(c).strip().upper() for c in df.columns]
     return df
 
@@ -70,12 +69,18 @@ if arq_corr and df_cadastro is not None:
     v_dolar_haiti = st.sidebar.number_input("💵 Dólar Haiti (BRL)", value=5.48)
     v_conv_moeda = st.sidebar.number_input("🔄 Moeda Local -> USD", value=1.0)
 
-    # 2. CRUZAMENTO E FILTRO DE COMERCIAL (RESTAURADO)
+    # 2. CRUZAMENTO E TRATAMENTO DE NOMES
     df_raw['REALIZADO_POR'] = df_raw['REALIZADO_POR'].apply(limpar_texto)
     df_cadastro['REALIZADO_POR'] = df_cadastro['REALIZADO_POR'].apply(limpar_texto)
     df_final = pd.merge(df_raw, df_cadastro, on='REALIZADO_POR', how='left')
 
-    # Filtro de Comercial na Sidebar
+    # Lógica de Consolidação: Se não tiver a coluna NOME_CONSOLIDADO, usa o login original
+    if 'NOME_CONSOLIDADO' not in df_final.columns:
+        df_final['NOME_CONSOLIDADO'] = df_final['REALIZADO_POR']
+    else:
+        df_final['NOME_CONSOLIDADO'] = df_final['NOME_CONSOLIDADO'].fillna(df_final['REALIZADO_POR'])
+
+    # Filtro de Comercial
     if 'COMERCIAL' in df_final.columns:
         lista_com = ["TODOS"] + sorted(df_final['COMERCIAL'].dropna().unique().tolist())
         sel_com = st.sidebar.selectbox("Filtrar por Comercial:", lista_com)
@@ -84,33 +89,29 @@ if arq_corr and df_cadastro is not None:
     else:
         sel_com = "TODOS"
 
-    # 3. MOTOR DE CÁLCULO (HIERARQUIA PRIORITÁRIA 60%)
-    def motor_v7_4(row):
+    # 3. MOTOR DE CÁLCULO v7.5
+    def motor_v7_5(row):
         custo_brl = row.get('COSTO_DE_ENVIO_BRL', 0)
         v_usd = row.get('VALOR_DESTINO', 0) / v_conv_moeda
         pais = limpar_texto(row.get('PAIS_DESTINO', ''))
         id_p = str(row.get('ID_PACOTE_COMISSAO', '20'))
-        vol = len(df_final[df_final['REALIZADO_POR'] == row['REALIZADO_POR']])
+        # Volume agora conta todos os logins do mesmo NOME_CONSOLIDADO
+        vol = len(df_final[df_final['NOME_CONSOLIDADO'] == row['NOME_CONSOLIDADO']])
         
-        # REGRA 1: Pacote 40 = 60% Fixo (Ignora Haiti e Volume)
         if '40' in id_p:
             return custo_brl * 0.60
-        
-        # REGRA 2: Haiti (Para quem não é Pacote 40)
         if pais == 'HAITI':
-            if v_usd <= 100: 
-                return 2.5 * v_dolar_haiti
+            if v_usd <= 100: return 2.5 * v_dolar_haiti
             return custo_brl * (0.50 if vol <= 100 else 0.60)
         
-        # REGRA 3: Padrão por Volume
         percentual = 0.30 if vol <= 50 else (0.50 if vol <= 100 else 0.60)
         return custo_brl * percentual
 
-    df_final['COMISSAO_AGENTE'] = df_final.apply(motor_v7_4, axis=1)
+    df_final['COMISSAO_AGENTE'] = df_final.apply(motor_v7_5, axis=1)
     df_final['COMISSAO_COMERCIAL'] = df_final.get('REGRA_FIXO_COMERCIAL', 0)
 
-    # 4. EXIBIÇÃO DO RESUMO
-    df_resumo = df_final.groupby(['COMERCIAL', 'REALIZADO_POR']).agg({
+    # 4. EXIBIÇÃO CONSOLIDADA (Agrupa por NOME_CONSOLIDADO)
+    df_resumo = df_final.groupby(['COMERCIAL', 'NOME_CONSOLIDADO']).agg({
         'COMISSAO_AGENTE': 'sum',
         'COMISSAO_COMERCIAL': 'sum'
     }).reset_index()
@@ -125,33 +126,31 @@ if arq_corr and df_cadastro is not None:
 
     # 5. INVESTIGAÇÃO E DOWNLOAD
     st.markdown("---")
-    with st.expander("🔍 Detalhar e Baixar Relatório do Agente"):
-        # A lista de agentes agora respeita o filtro do comercial selecionado
-        agentes_filtrados = ["Selecione..."] + sorted(df_resumo['REALIZADO_POR'].tolist())
+    with st.expander("🔍 Detalhar e Baixar Relatório por Agente"):
+        agentes_filtrados = ["Selecione..."] + sorted(df_resumo['NOME_CONSOLIDADO'].tolist())
         agente_sel = st.selectbox("Selecione o Agente:", agentes_filtrados)
         
         if agente_sel != "Selecione...":
-            df_agente = df_final[df_final['REALIZADO_POR'] == agente_sel].copy()
+            # Filtra tudo o que pertence ao nome consolidado (Luthan + Lutha2)
+            df_agente = df_final[df_final['NOME_CONSOLIDADO'] == agente_sel].copy()
             
-            total_ag = df_agente['COMISSAO_AGENTE'].sum()
-            st.markdown(f"### Total de Comissões: {agente_sel}")
-            st.title(f"R$ {total_ag:,.2f}")
+            st.markdown(f"### Total Consolidado: {agente_sel}")
+            st.title(f"R$ {df_agente['COMISSAO_AGENTE'].sum():,.2f}")
 
-            # Define colunas para o Excel (Originais + Comissão)
-            col_excel = [c for c in df_raw.columns] + ['COMISSAO_AGENTE']
-            
-            st.table(df_agente[['DATA', 'PAIS_DESTINO', 'VALOR_DESTINO', 'COMISSAO_AGENTE']].style.format({
+            # Tabela mostra o login original para conferência
+            st.table(df_agente[['DATA', 'REALIZADO_POR', 'PAIS_DESTINO', 'VALOR_DESTINO', 'COMISSAO_AGENTE']].style.format({
                 'VALOR_DESTINO': 'R$ {:.2f}', 'COMISSAO_AGENTE': 'R$ {:.2f}'
             }))
 
-            def gerar_xlsx(df, colunas):
+            def gerar_xlsx(df):
                 output = io.BytesIO()
-                df[colunas].to_excel(output, index=False, engine='xlsxwriter')
+                # O Excel conterá a coluna do login original e a consolidada
+                df.to_excel(output, index=False, engine='xlsxwriter')
                 return output.getvalue()
 
             st.download_button(
-                label=f"📥 Baixar Relatório - {agente_sel}",
-                data=gerar_xlsx(df_agente, col_excel),
-                file_name=f"Milanov_{agente_sel}_{datetime.now().strftime('%d_%m_%Y')}.xlsx",
+                label=f"📥 Baixar Relatório Consolidado - {agente_sel}",
+                data=gerar_xlsx(df_agente),
+                file_name=f"Milanov_{agente_sel}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
