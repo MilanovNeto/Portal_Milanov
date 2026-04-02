@@ -5,7 +5,7 @@ import io
 import os
 
 # Configuração da página
-st.set_page_config(page_title="Portal Milanov v7.1", layout="wide")
+st.set_page_config(page_title="Portal Milanov v7.2", layout="wide")
 
 # --- FUNÇÕES DE APOIO ---
 def limpar_texto(txt):
@@ -130,7 +130,7 @@ if arq_corr and df_cadastro is not None:
 
     # 5. INVESTIGAÇÃO E DOWNLOAD POR AGENTE
     st.markdown("---")
-    with st.expander("🔍 Ver Operações Detalhadas e Baixar Relatório do Agente"):
+    with st.expander("🔍 Ver Operações Detalhadas e Baixar Relatório"):
         agente_sel = st.selectbox("Escolha um Agente:", ["Selecione..."] + df_resumo['REALIZADO_POR'].tolist())
         
         if agente_sel != "Selecione...":
@@ -140,10 +140,30 @@ if arq_corr and df_cadastro is not None:
             st.markdown(f"### Total de Comissões: {agente_sel}")
             st.title(f"R$ {total_ag:,.2f}")
 
-            # Define as colunas que vão para o Excel
-            colunas_para_excel = list(df_raw.columns)
-            if 'COMISSAO_AGENTE' not in colunas_para_excel:
-                colunas_para_excel.append('COMISSAO_AGENTE')
+            # Define as colunas que vão para o Excel (Originais + Comissão)
+            colunas_excel = list(df_raw.columns)
+            if 'COMISSAO_AGENTE' not in colunas_excel:
+                colunas_excel.append('COMISSAO_AGENTE')
 
-            # Exibe prévia na tela
-            st.table(df_agente[['DATA', 'PAIS_DESTINO', 'VALOR_
+            # Tabela visual formatada
+            cols_vista = ['DATA', 'PAIS_DESTINO', 'VALOR_DESTINO', 'COMISSAO_AGENTE']
+            st.table(df_agente[cols_vista].style.format({
+                'VALOR_DESTINO': 'R$ {:.2f}', 
+                'COMISSAO_AGENTE': 'R$ {:.2f}'
+            }))
+
+            # Função de conversão
+            def gerar_xlsx(df, colunas):
+                output = io.BytesIO()
+                df_export = df[colunas]
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    df_export.to_excel(writer, index=False, sheet_name='Extrato')
+                return output.getvalue()
+
+            # Botão de download
+            st.download_button(
+                label=f"📥 Baixar Relatório - {agente_sel}",
+                data=gerar_xlsx(df_agente, colunas_excel),
+                file_name=f"Milanov_{agente_sel}_{datetime.now().strftime('%d_%m_%Y')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
