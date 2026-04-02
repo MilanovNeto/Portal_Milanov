@@ -5,7 +5,7 @@ import io
 import os
 
 # Configuração da página
-st.set_page_config(page_title="Portal Milanov v7.3", layout="wide")
+st.set_page_config(page_title="Portal Milanov v7.4", layout="wide")
 
 # --- FUNÇÕES DE APOIO ---
 def limpar_texto(txt):
@@ -57,6 +57,7 @@ if arq_corr and df_cadastro is not None:
     df_raw = pd.read_excel(arq_corr)
     df_raw = normalizar_colunas(df_raw)
     
+    # 1. FILTRO DE DATA
     if 'DATA' in df_raw.columns:
         df_raw['DATA'] = pd.to_datetime(df_raw['DATA'])
         st.sidebar.header("📅 Período")
@@ -69,35 +70,43 @@ if arq_corr and df_cadastro is not None:
     v_dolar_haiti = st.sidebar.number_input("💵 Dólar Haiti (BRL)", value=5.48)
     v_conv_moeda = st.sidebar.number_input("🔄 Moeda Local -> USD", value=1.0)
 
-    # 2. CRUZAMENTO (MERGE)
+    # 2. CRUZAMENTO E FILTRO DE COMERCIAL (RESTAURADO)
     df_raw['REALIZADO_POR'] = df_raw['REALIZADO_POR'].apply(limpar_texto)
     df_cadastro['REALIZADO_POR'] = df_cadastro['REALIZADO_POR'].apply(limpar_texto)
     df_final = pd.merge(df_raw, df_cadastro, on='REALIZADO_POR', how='left')
 
-    # 3. MOTOR DE CÁLCULO ATUALIZADO (HIERARQUIA DE REGRAS)
-    def motor_v7_3(row):
+    # Filtro de Comercial na Sidebar
+    if 'COMERCIAL' in df_final.columns:
+        lista_com = ["TODOS"] + sorted(df_final['COMERCIAL'].dropna().unique().tolist())
+        sel_com = st.sidebar.selectbox("Filtrar por Comercial:", lista_com)
+        if sel_com != "TODOS":
+            df_final = df_final[df_final['COMERCIAL'] == sel_com]
+    else:
+        sel_com = "TODOS"
+
+    # 3. MOTOR DE CÁLCULO (HIERARQUIA PRIORITÁRIA 60%)
+    def motor_v7_4(row):
         custo_brl = row.get('COSTO_DE_ENVIO_BRL', 0)
         v_usd = row.get('VALOR_DESTINO', 0) / v_conv_moeda
         pais = limpar_texto(row.get('PAIS_DESTINO', ''))
         id_p = str(row.get('ID_PACOTE_COMISSAO', '20'))
         vol = len(df_final[df_final['REALIZADO_POR'] == row['REALIZADO_POR']])
         
-        # --- REGRA PRIORITÁRIA (60%) ---
-        # Se o pacote for '40', o agente ganha 60% independente de qualquer outra condição
+        # REGRA 1: Pacote 40 = 60% Fixo (Ignora Haiti e Volume)
         if '40' in id_p:
             return custo_brl * 0.60
         
-        # --- REGRAS SECUNDÁRIAS (Só executam se não for 60%) ---
+        # REGRA 2: Haiti (Para quem não é Pacote 40)
         if pais == 'HAITI':
             if v_usd <= 100: 
                 return 2.5 * v_dolar_haiti
             return custo_brl * (0.50 if vol <= 100 else 0.60)
         
-        # Regra Padrão por Volume
+        # REGRA 3: Padrão por Volume
         percentual = 0.30 if vol <= 50 else (0.50 if vol <= 100 else 0.60)
         return custo_brl * percentual
 
-    df_final['COMISSAO_AGENTE'] = df_final.apply(motor_v7_3, axis=1)
+    df_final['COMISSAO_AGENTE'] = df_final.apply(motor_v7_4, axis=1)
     df_final['COMISSAO_COMERCIAL'] = df_final.get('REGRA_FIXO_COMERCIAL', 0)
 
     # 4. EXIBIÇÃO DO RESUMO
@@ -107,7 +116,7 @@ if arq_corr and df_cadastro is not None:
     }).reset_index()
     df_resumo['TOTAL_A_PAGAR'] = df_resumo['COMISSAO_AGENTE'] + df_resumo['COMISSAO_COMERCIAL']
 
-    st.subheader("📋 Resumo Consolidado")
+    st.subheader(f"📋 Resumo Consolidado - {sel_com}")
     st.dataframe(df_resumo.style.format({
         'COMISSAO_AGENTE': 'R$ {:.2f}', 
         'COMISSAO_COMERCIAL': 'R$ {:.2f}', 
@@ -117,13 +126,20 @@ if arq_corr and df_cadastro is not None:
     # 5. INVESTIGAÇÃO E DOWNLOAD
     st.markdown("---")
     with st.expander("🔍 Detalhar e Baixar Relatório do Agente"):
-        agente_sel = st.selectbox("Agente:", ["Selecione..."] + df_resumo['REALIZADO_POR'].tolist())
+        # A lista de agentes agora respeita o filtro do comercial selecionado
+        agentes_filtrados = ["Selecione..."] + sorted(df_resumo['REALIZADO_POR'].tolist())
+        agente_sel = st.selectbox("Selecione o Agente:", agentes_filtrados)
+        
         if agente_sel != "Selecione...":
             df_agente = df_final[df_final['REALIZADO_POR'] == agente_sel].copy()
-            st.title(f"R$ {df_agente['COMISSAO_AGENTE'].sum():,.2f}")
+            
+            total_ag = df_agente['COMISSAO_AGENTE'].sum()
+            st.markdown(f"### Total de Comissões: {agente_sel}")
+            st.title(f"R$ {total_ag:,.2f}")
 
-            # Exportação com a comissão incluída
-            col_excel = list(df_raw.columns) + ['COMISSAO_AGENTE']
+            # Define colunas para o Excel (Originais + Comissão)
+            col_excel = [c for c in df_raw.columns] + ['COMISSAO_AGENTE']
+            
             st.table(df_agente[['DATA', 'PAIS_DESTINO', 'VALOR_DESTINO', 'COMISSAO_AGENTE']].style.format({
                 'VALOR_DESTINO': 'R$ {:.2f}', 'COMISSAO_AGENTE': 'R$ {:.2f}'
             }))
