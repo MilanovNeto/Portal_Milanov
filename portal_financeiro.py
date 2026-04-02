@@ -32,7 +32,7 @@ if 'autenticado' not in st.session_state:
     st.session_state.autenticado = False
 
 if not st.session_state.autenticado:
-    st.title("🔐 Login Milanov")
+    st.title("🔐 Sistema de Comissões")
     u, p = st.text_input("Usuário"), st.text_input("Senha", type="password")
     if st.button("Entrar") and df_usuarios is not None:
         df_usuarios.columns = [limpar_texto(c) for c in df_usuarios.columns]
