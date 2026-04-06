@@ -20,13 +20,13 @@ st.markdown("""
 
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 
-.stApp { background-color: #0F1520; color: #E8EAF0; }
+.stApp { background-color: #F4F6FB; color: #1A1E2C; }
 
 [data-testid="stSidebar"] {
     background-color: #141824 !important;
-    border-right: 1px solid #1F2433 !important;
+    border-right: 1px solid #E2E6F0 !important;
 }
-[data-testid="stSidebar"] * { color: #C5C9D6 !important; }
+[data-testid="stSidebar"] * { color: #2C3252 !important; }
 
 .block-container {
     padding-top: 1.5rem !important;
@@ -59,35 +59,35 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 }
 .metric-value {
     font-family: 'DM Mono', monospace;
-    font-size: 26px; font-weight: 500; color: #ECEEF6; line-height: 1.1;
+    font-size: 26px; font-weight: 500; color: #1A1E2C; line-height: 1.1;
 }
-.metric-value.large { font-size: 28px; color: #F0C040; }
+.metric-value.large { font-size: 28px; color: #2A6FDB; }
 .metric-sub { font-size: 11px; color: #6B7A99; margin-top: 6px; font-family: 'DM Mono', monospace; }
 
 /* Header */
 .app-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 0 20px 0; border-bottom: 1px solid #1A1E2C; margin-bottom: 28px;
+    padding: 20px 0 20px 0; border-bottom: 1px solid #E2E6F0; margin-bottom: 28px;
 }
-.app-logo-name { font-size: 20px; font-weight: 600; color: #ECEEF6; letter-spacing: -0.02em; }
+.app-logo-name { font-size: 20px; font-weight: 600; color: #1A1E2C; letter-spacing: -0.02em; }
 .app-logo-sub  { font-size: 11px; color: #6B7A99; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
 .app-badge {
     background: #161A26; border: 1px solid #2D3454; border-radius: 20px;
     padding: 5px 14px; font-size: 11px; font-family: 'DM Mono', monospace;
-    color: #4F6BFF; letter-spacing: 0.05em;
+    color: #3A5FD9; letter-spacing: 0.05em;
 }
 
 /* Seções */
 .section-header {
     display: flex; align-items: center; gap: 10px;
-    margin: 28px 0 14px 0; padding-bottom: 10px; border-bottom: 1px solid #1F2433;
+    margin: 28px 0 14px 0; padding-bottom: 10px; border-bottom: 1px solid #E2E6F0;
 }
-.section-dot { width: 5px; height: 5px; border-radius: 50%; background: #4F6BFF; flex-shrink: 0; }
-.section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #7B8CFF; }
+.section-dot { width: 5px; height: 5px; border-radius: 50%; background: #3A5FD9; flex-shrink: 0; }
+.section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #3A5FD9; }
 
 /* Sidebar */
-.sidebar-logo { padding: 18px 0 14px 0; border-bottom: 1px solid #1F2433; margin-bottom: 12px; }
-.sidebar-logo-name { font-size: 15px; font-weight: 600; color: #ECEEF6 !important; }
+.sidebar-logo { padding: 18px 0 14px 0; border-bottom: 1px solid #E2E6F0; margin-bottom: 12px; }
+.sidebar-logo-name { font-size: 15px; font-weight: 600; color: #1A1E2C !important; }
 .sidebar-logo-sub  { font-size: 10px; color: #5A6680 !important; text-transform: uppercase; letter-spacing: 0.1em; }
 .sidebar-section   {
     font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
@@ -95,7 +95,7 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 }
 
 /* Divider */
-.divider { height: 1px; background: linear-gradient(90deg, transparent, #1F2433 20%, #1F2433 80%, transparent); margin: 24px 0; }
+.divider { height: 1px; background: linear-gradient(90deg, transparent, #E2E6F0 20%, #E2E6F0 80%, transparent); margin: 24px 0; }
 
 /* Botões */
 .stButton > button, .stDownloadButton > button {
@@ -112,7 +112,7 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 /* Inputs */
 .stTextInput input, .stNumberInput input, .stSelectbox > div > div {
     background-color: #181E2E !important; border: 1px solid #2D3454 !important;
-    border-radius: 8px !important; color: #E8EAF0 !important;
+    border-radius: 8px !important; color: #1A1E2C !important;
 }
 
 /* Tabela */
@@ -130,7 +130,7 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 
 /* Rodapé */
 .footer {
-    margin-top: 56px; padding: 20px 0 14px 0; border-top: 1px solid #1A1E2C;
+    margin-top: 56px; padding: 20px 0 14px 0; border-top: 1px solid #E2E6F0;
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
 }
 .footer-brand { font-size: 12px; font-weight: 600; color: #5A6680; letter-spacing: 0.06em; }
@@ -203,8 +203,8 @@ if not st.session_state.autenticado:
     with col:
         st.markdown("""
         <div style="text-align:center; padding:48px 0 32px 0;">
-            <div style="font-size:38px; font-weight:700; color:#ECEEF6; letter-spacing:-0.03em;">Milanov</div>
-            <div style="font-size:11px; color:#3A4060; letter-spacing:0.14em; text-transform:uppercase; margin-top:5px;">
+            <div style="font-size:38px; font-weight:700; color:#1A1E2C; letter-spacing:-0.03em;">Milanov</div>
+            <div style="font-size:11px; color:#9BA3BF; letter-spacing:0.14em; text-transform:uppercase; margin-top:5px;">
                 Portal de Auditoria &nbsp;·&nbsp; Acesso Restrito
             </div>
         </div>
@@ -227,7 +227,7 @@ if not st.session_state.autenticado:
                 st.error("Usuário ou senha incorretos.")
 
         st.markdown("""</div>
-        <div style="text-align:center; margin-top:28px; font-size:11px; color:#252A3A; font-family:'DM Mono',monospace;">
+        <div style="text-align:center; margin-top:28px; font-size:11px; color:#B0BAD0; font-family:'DM Mono',monospace;">
             MILANOV SERVIÇOS LTDA &nbsp;·&nbsp; Uso interno
         </div>""", unsafe_allow_html=True)
     st.stop()
@@ -277,7 +277,7 @@ if not arq:
     st.markdown("""<div style="background:#0D1424; border:1.5px dashed #1F2433; border-radius:12px;
                 padding:44px; text-align:center; margin-top:4px;">
         <div style="font-size:32px; margin-bottom:12px; opacity:0.3;">📂</div>
-        <div style="font-size:13px; color:#3A4060;">Faça upload do relatório exportado da corretora para iniciar</div>
+        <div style="font-size:13px; color:#9BA3BF;">Faça upload do relatório exportado da corretora para iniciar</div>
     </div>""", unsafe_allow_html=True)
     st.markdown(footer(), unsafe_allow_html=True)
     st.stop()
@@ -443,20 +443,20 @@ with st.expander("🔍 Selecionar agente para investigar", expanded=False):
         st.markdown(f"""
         <div style="display:flex; gap:14px; margin:14px 0 20px 0; flex-wrap:wrap;">
             <div style="flex:1;min-width:150px;background:#181E2E;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
-                <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Comissão Total</div>
-                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#F0C040;">{fmt_brl(total_com)}</div>
+                <div style="font-size:10px;color:#9BA3BF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Comissão Total</div>
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#2A6FDB;">{fmt_brl(total_com)}</div>
             </div>
             <div style="flex:1;min-width:110px;background:#181E2E;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
-                <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Operações</div>
-                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#ECEEF6;">{len(df_ag)}</div>
+                <div style="font-size:10px;color:#9BA3BF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Operações</div>
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#1A1E2C;">{len(df_ag)}</div>
             </div>
             <div style="flex:1;min-width:110px;background:#181E2E;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
-                <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Pacote</div>
-                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#7B8CFF;">{pacote_ag}</div>
+                <div style="font-size:10px;color:#9BA3BF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Pacote</div>
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#5B6FD9;">{pacote_ag}</div>
             </div>
             <div style="flex:1;min-width:110px;background:#181E2E;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
-                <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Comercial</div>
-                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#1DB87A;">{comercial_ag}</div>
+                <div style="font-size:10px;color:#9BA3BF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Comercial</div>
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#0E9E65;">{comercial_ag}</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -512,7 +512,7 @@ with col_btn:
     )
 with col_info:
     st.markdown(f"""
-    <div style="padding:12px 0; font-size:12px; color:#3A4060; font-family:'DM Mono',monospace; line-height:2;">
+    <div style="padding:12px 0; font-size:12px; color:#9BA3BF; font-family:'DM Mono',monospace; line-height:2;">
         {resumo['NOME_CONSOLIDADO'].nunique()} agentes &nbsp;·&nbsp;
         {len(df)} operações &nbsp;·&nbsp;
         gerado em {datetime.today().strftime('%d/%m/%Y %H:%M')}
