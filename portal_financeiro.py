@@ -5,7 +5,7 @@ import io
 import os
 
 # Configuração da página
-st.set_page_config(page_title="Portal Milanov v7.5", layout="wide")
+st.set_page_config(page_title="Portal Milanov v7.6", layout="wide")
 
 # --- FUNÇÕES DE APOIO ---
 def limpar_texto(txt):
@@ -53,10 +53,10 @@ st.header("📊 Painel de Auditoria Milanov")
 arq_corr = st.file_uploader("📁 Subir Relatório da Corretora", type=['xlsx'])
 
 if arq_corr and df_cadastro is not None:
+    # 1. Preparação dos Dados
     df_raw = pd.read_excel(arq_corr)
     df_raw = normalizar_colunas(df_raw)
     
-    # 1. FILTRO DE DATA
     if 'DATA' in df_raw.columns:
         df_raw['DATA'] = pd.to_datetime(df_raw['DATA'])
         st.sidebar.header("📅 Período")
@@ -65,16 +65,14 @@ if arq_corr and df_cadastro is not None:
         if len(periodo) == 2:
             df_raw = df_raw[(df_raw['DATA'].dt.date >= periodo[0]) & (df_raw['DATA'].dt.date <= periodo[1])]
     
-    st.sidebar.markdown("---")
     v_dolar_haiti = st.sidebar.number_input("💵 Dólar Haiti (BRL)", value=5.48)
     v_conv_moeda = st.sidebar.number_input("🔄 Moeda Local -> USD", value=1.0)
 
-    # 2. CRUZAMENTO E TRATAMENTO DE NOMES
+    # 2. Cruzamento e Consolidação
     df_raw['REALIZADO_POR'] = df_raw['REALIZADO_POR'].apply(limpar_texto)
     df_cadastro['REALIZADO_POR'] = df_cadastro['REALIZADO_POR'].apply(limpar_texto)
     df_final = pd.merge(df_raw, df_cadastro, on='REALIZADO_POR', how='left')
 
-    # Lógica de Consolidação: Se não tiver a coluna NOME_CONSOLIDADO, usa o login original
     if 'NOME_CONSOLIDADO' not in df_final.columns:
         df_final['NOME_CONSOLIDADO'] = df_final['REALIZADO_POR']
     else:
@@ -89,32 +87,40 @@ if arq_corr and df_cadastro is not None:
     else:
         sel_com = "TODOS"
 
-    # 3. MOTOR DE CÁLCULO v7.5
-    def motor_v7_5(row):
+    # 3. MOTOR DE CÁLCULO v7.6 (Regras de Escalonamento)
+    # Criamos um contador por Agente Consolidado para saber qual é a 1ª, 2ª... 101ª operação
+    df_final = df_final.sort_values(by=['NOME_CONSOLIDADO', 'DATA'])
+    df_final['ORDEM_OP'] = df_final.groupby('NOME_CONSOLIDADO').cumcount() + 1
+
+    def motor_v7_6(row):
         custo_brl = row.get('COSTO_DE_ENVIO_BRL', 0)
         v_usd = row.get('VALOR_DESTINO', 0) / v_conv_moeda
         pais = limpar_texto(row.get('PAIS_DESTINO', ''))
         id_p = str(row.get('ID_PACOTE_COMISSAO', '20'))
-        # Volume agora conta todos os logins do mesmo NOME_CONSOLIDADO
-        vol = len(df_final[df_final['NOME_CONSOLIDADO'] == row['NOME_CONSOLIDADO']])
+        n_op = row['ORDEM_OP'] # Qual é o número desta operação para o agente
         
+        # REGRA 1: Pacote 40 (60% Fixo em tudo)
         if '40' in id_p:
             return custo_brl * 0.60
-        if pais == 'HAITI':
-            if v_usd <= 100: return 2.5 * v_dolar_haiti
-            return custo_brl * (0.50 if vol <= 100 else 0.60)
         
-        percentual = 0.30 if vol <= 50 else (0.50 if vol <= 100 else 0.60)
+        # REGRA 2: Haiti (Até 100 USD = 2.50 USD Fixo)
+        if pais == 'HAITI' and v_usd <= 100:
+            return 2.50 * v_dolar_haiti
+        
+        # REGRA 3: Escalonamento (Acima de 100 operações paga 60%, senão 50%)
+        # Nota: Ajustado para que apenas a partir da 101ª pague 60%
+        percentual = 0.60 if n_op > 100 else 0.50
         return custo_brl * percentual
 
-    df_final['COMISSAO_AGENTE'] = df_final.apply(motor_v7_5, axis=1)
+    df_final['COMISSAO_AGENTE'] = df_final.apply(motor_v7_6, axis=1)
     df_final['COMISSAO_COMERCIAL'] = df_final.get('REGRA_FIXO_COMERCIAL', 0)
 
-    # 4. EXIBIÇÃO CONSOLIDADA (Agrupa por NOME_CONSOLIDADO)
+    # 4. EXIBIÇÃO CONSOLIDADA (Ordem Alfabética)
     df_resumo = df_final.groupby(['COMERCIAL', 'NOME_CONSOLIDADO']).agg({
         'COMISSAO_AGENTE': 'sum',
         'COMISSAO_COMERCIAL': 'sum'
-    }).reset_index()
+    }).reset_index().sort_values(by=['COMERCIAL', 'NOME_CONSOLIDADO'])
+    
     df_resumo['TOTAL_A_PAGAR'] = df_resumo['COMISSAO_AGENTE'] + df_resumo['COMISSAO_COMERCIAL']
 
     st.subheader(f"📋 Resumo Consolidado - {sel_com}")
@@ -124,32 +130,28 @@ if arq_corr and df_cadastro is not None:
         'TOTAL_A_PAGAR': 'R$ {:.2f}'
     }), use_container_width=True)
 
-    # 5. INVESTIGAÇÃO E DOWNLOAD
+    # 5. DETALHAMENTO E DOWNLOAD
     st.markdown("---")
-    with st.expander("🔍 Detalhar e Baixar Relatório por Agente"):
-        agentes_filtrados = ["Selecione..."] + sorted(df_resumo['NOME_CONSOLIDADO'].tolist())
-        agente_sel = st.selectbox("Selecione o Agente:", agentes_filtrados)
+    with st.expander("🔍 Detalhar e Baixar Relatório"):
+        agentes_lista = ["Selecione..."] + sorted(df_resumo['NOME_CONSOLIDADO'].tolist())
+        agente_sel = st.selectbox("Selecione o Agente:", agentes_lista)
         
         if agente_sel != "Selecione...":
-            # Filtra tudo o que pertence ao nome consolidado (Luthan + Lutha2)
             df_agente = df_final[df_final['NOME_CONSOLIDADO'] == agente_sel].copy()
-            
-            st.markdown(f"### Total Consolidado: {agente_sel}")
             st.title(f"R$ {df_agente['COMISSAO_AGENTE'].sum():,.2f}")
 
-            # Tabela mostra o login original para conferência
-            st.table(df_agente[['DATA', 'REALIZADO_POR', 'PAIS_DESTINO', 'VALOR_DESTINO', 'COMISSAO_AGENTE']].style.format({
+            # Tabela mostra a ordem da operação para conferência do escalonamento
+            st.table(df_agente[['ORDEM_OP', 'DATA', 'REALIZADO_POR', 'PAIS_DESTINO', 'VALOR_DESTINO', 'COMISSAO_AGENTE']].style.format({
                 'VALOR_DESTINO': 'R$ {:.2f}', 'COMISSAO_AGENTE': 'R$ {:.2f}'
             }))
 
             def gerar_xlsx(df):
                 output = io.BytesIO()
-                # O Excel conterá a coluna do login original e a consolidada
                 df.to_excel(output, index=False, engine='xlsxwriter')
                 return output.getvalue()
 
             st.download_button(
-                label=f"📥 Baixar Relatório Consolidado - {agente_sel}",
+                label=f"📥 Baixar Relatório - {agente_sel}",
                 data=gerar_xlsx(df_agente),
                 file_name=f"Milanov_{agente_sel}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
