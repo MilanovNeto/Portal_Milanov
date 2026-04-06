@@ -327,6 +327,8 @@ if "COMERCIAL" in df.columns:
 # ──────────────────────────────────────────────────────────────
 df = df.sort_values(["NOME_CONSOLIDADO", "DATA"]).reset_index(drop=True)
 df["ORDEM"] = df.groupby("NOME_CONSOLIDADO").cumcount() + 1
+# Total de operações do agente no período — define a faixa de comissão
+df["TOTAL_OPS_AGENTE"] = df.groupby("NOME_CONSOLIDADO")["ORDEM"].transform("max")
 
 
 # ──────────────────────────────────────────────────────────────
@@ -351,13 +353,15 @@ def calcular_comissao(row):
         v_usd = v_dest / v_htg_usd if moeda == "HTG" else v_dest
         if v_usd <= 100:
             return 2.50 * v_usd_brl        # fixo, qualquer volume
-        # Haiti >100 USD: sem faixa de 30%
-        return custo * 0.50 if ordem <= 100 else custo * 0.60
+        # Haiti >100 USD: faixa pelo TOTAL de ops do agente (sem faixa de 30%)
+        total_ops = int(row.get("TOTAL_OPS_AGENTE", ordem))
+        return custo * 0.50 if total_ops <= 100 else custo * 0.60
 
-    # Demais países: escalonamento 30% / 50% / 60%
-    if ordem <= 50:
+    # Demais países: faixa pelo TOTAL de ops do agente no período
+    total_ops = int(row.get("TOTAL_OPS_AGENTE", ordem))
+    if total_ops <= 50:
         return custo * 0.30
-    elif ordem <= 100:
+    elif total_ops <= 100:
         return custo * 0.50
     else:
         return custo * 0.60
