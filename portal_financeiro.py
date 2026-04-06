@@ -230,9 +230,9 @@ with st.sidebar:
     </div>
     <div class="sidebar-section">Câmbio</div>""", unsafe_allow_html=True)
 
-    v_usd_brl = st.number_input("USD → BRL (Haiti)", value=5.48, format="%.4f",
+    v_usd_brl = st.number_input("USD → BRL (Haiti)", value=5.37, format="%.4f",
                                  help="Multiplica a comissão fixa de USD 2,50 para BRL")
-    v_htg_usd = st.number_input("HTG / USD", value=130.0, format="%.2f",
+    v_htg_usd = st.number_input("HTG / USD", value=131.9, format="%.2f",
                                  help="Converte VALOR_DESTINO em HTG para USD")
 
     st.markdown('<div class="sidebar-section">Período</div>', unsafe_allow_html=True)
@@ -298,9 +298,9 @@ if len(periodo) == 2:
 # ──────────────────────────────────────────────────────────────
 df_raw["REALIZADO_POR"]      = df_raw["REALIZADO_POR"].apply(limpar)
 df_cadastro["REALIZADO_POR"] = df_cadastro["REALIZADO_POR"].apply(limpar)
-# Remove logins duplicados no cadastro (mantém primeira ocorrência)
-# drop_duplicates movido para carregar_regras()
-df = pd.merge(df_raw, df_cadastro, on="REALIZADO_POR", how="left")
+# Remove logins duplicados no cadastro (mantém último registro)
+df_cadastro_uniq = df_cadastro.drop_duplicates(subset="REALIZADO_POR", keep="last")
+df = pd.merge(df_raw, df_cadastro_uniq, on="REALIZADO_POR", how="left")
 
 if "NOME_CONSOLIDADO" not in df.columns:
     df["NOME_CONSOLIDADO"] = df["REALIZADO_POR"]
