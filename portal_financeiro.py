@@ -20,13 +20,16 @@ st.markdown("""
 
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 
-.stApp { background-color: #F4F6FB; color: #1A1E2C; }
+.stApp { background-color: #F4F6FB !important; color: #1A1E2C !important; }
+.stApp > * { color: #1A1E2C; }
+section[data-testid="stMain"] { background-color: #F4F6FB !important; }
+.stMainBlockContainer { background-color: #F4F6FB !important; }
 
 [data-testid="stSidebar"] {
-    background-color: #141824 !important;
+    background-color: #FFFFFF !important;
     border-right: 1px solid #E2E6F0 !important;
 }
-[data-testid="stSidebar"] * { color: #2C3252 !important; }
+[data-testid="stSidebar"] * { color: #2C3A5A !important; }
 
 .block-container {
     padding-top: 1.5rem !important;
@@ -36,23 +39,24 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 
 /* Cards de métricas */
 .metric-card {
-    background: linear-gradient(135deg, #181E2E 0%, #1C2235 100%);
-    border: 1px solid #2D3454;
+    background: #FFFFFF;
+    border: 1px solid #E2E6F0;
     border-radius: 12px;
     padding: 20px 24px;
     position: relative;
     overflow: hidden;
     height: 100%;
+    box-shadow: 0 2px 12px rgba(60,80,160,0.06);
 }
 .metric-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
+    top: 0; left: 0; right: 0; height: 3px;
     background: linear-gradient(90deg, #4F6BFF, #7B8CFF);
 }
-.metric-card.gold::before  { background: linear-gradient(90deg, #C9960C, #F0C040); }
+.metric-card.gold::before  { background: linear-gradient(90deg, #1A6FDB, #4F9FFF); }
 .metric-card.green::before { background: linear-gradient(90deg, #0C7A4F, #1DB87A); }
-.metric-card.rose::before  { background: linear-gradient(90deg, #7A0C3A, #C4366A); }
+.metric-card.rose::before  { background: linear-gradient(90deg, #9B2C6A, #D94F8E); }
 .metric-label {
     font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
     text-transform: uppercase; color: #8892B0; margin-bottom: 8px;
@@ -61,8 +65,8 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
     font-family: 'DM Mono', monospace;
     font-size: 26px; font-weight: 500; color: #1A1E2C; line-height: 1.1;
 }
-.metric-value.large { font-size: 28px; color: #2A6FDB; }
-.metric-sub { font-size: 11px; color: #6B7A99; margin-top: 6px; font-family: 'DM Mono', monospace; }
+.metric-value.large { font-size: 28px; color: #1A6FDB; }
+.metric-sub { font-size: 11px; color: #9BA3BF; margin-top: 6px; font-family: 'DM Mono', monospace; }
 
 /* Header */
 .app-header {
@@ -70,9 +74,9 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
     padding: 20px 0 20px 0; border-bottom: 1px solid #E2E6F0; margin-bottom: 28px;
 }
 .app-logo-name { font-size: 20px; font-weight: 600; color: #1A1E2C; letter-spacing: -0.02em; }
-.app-logo-sub  { font-size: 11px; color: #6B7A99; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+.app-logo-sub  { font-size: 11px; color: #9BA3BF; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
 .app-badge {
-    background: #161A26; border: 1px solid #2D3454; border-radius: 20px;
+    background: #EEF1FB; border: 1px solid #D0D8F0; border-radius: 20px;
     padding: 5px 14px; font-size: 11px; font-family: 'DM Mono', monospace;
     color: #3A5FD9; letter-spacing: 0.05em;
 }
@@ -86,12 +90,12 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #3A5FD9; }
 
 /* Sidebar */
-.sidebar-logo { padding: 18px 0 14px 0; border-bottom: 1px solid #E2E6F0; margin-bottom: 12px; }
+.sidebar-logo { padding: 18px 0 14px 0; border-bottom: 1px solid #E8EDF5; margin-bottom: 12px; }
 .sidebar-logo-name { font-size: 15px; font-weight: 600; color: #1A1E2C !important; }
-.sidebar-logo-sub  { font-size: 10px; color: #5A6680 !important; text-transform: uppercase; letter-spacing: 0.1em; }
+.sidebar-logo-sub  { font-size: 10px; color: #9BA3BF !important; text-transform: uppercase; letter-spacing: 0.1em; }
 .sidebar-section   {
     font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-    color: #5A6680 !important; padding: 14px 0 6px 0;
+    color: #9BA3BF !important; padding: 14px 0 6px 0;
 }
 
 /* Divider */
@@ -109,23 +113,25 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
     background: linear-gradient(135deg, #0C5E38, #1DB87A) !important;
 }
 
-/* Inputs */
-.stTextInput input, .stNumberInput input, .stSelectbox > div > div {
-    background-color: #181E2E !important; border: 1px solid #2D3454 !important;
+/* Inputs — fundo branco, texto escuro */
+.stTextInput input, .stNumberInput input {
+    background-color: #FFFFFF !important; border: 1px solid #D0D8F0 !important;
     border-radius: 8px !important; color: #1A1E2C !important;
 }
+.stTextInput label, .stNumberInput label, .stSelectbox label,
+.stDateInput label, .stFileUploader label { color: #4A5580 !important; }
 
 /* Tabela */
-[data-testid="stDataFrame"] { border-radius: 10px !important; border: 1px solid #2A3148 !important; overflow: hidden !important; }
+[data-testid="stDataFrame"] { border-radius: 10px !important; border: 1px solid #E2E6F0 !important; overflow: hidden !important; }
 
 /* Expander */
 [data-testid="stExpander"] {
-    background: #13161E !important; border: 1px solid #2A3148 !important; border-radius: 10px !important;
+    background: #FFFFFF !important; border: 1px solid #E2E6F0 !important; border-radius: 10px !important;
 }
 
 /* File uploader */
 [data-testid="stFileUploader"] {
-    background: #111827 !important; border: 1.5px dashed #2A2F42 !important; border-radius: 10px !important;
+    background: #F8FAFF !important; border: 1.5px dashed #C0CAEB !important; border-radius: 10px !important;
 }
 
 /* Rodapé */
@@ -133,8 +139,8 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
     margin-top: 56px; padding: 20px 0 14px 0; border-top: 1px solid #E2E6F0;
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
 }
-.footer-brand { font-size: 12px; font-weight: 600; color: #5A6680; letter-spacing: 0.06em; }
-.footer-copy  { font-size: 11px; color: #445060; font-family: 'DM Mono', monospace; }
+.footer-brand { font-size: 12px; font-weight: 600; color: #8892B0; letter-spacing: 0.06em; }
+.footer-copy  { font-size: 11px; color: #B0BAD0; font-family: 'DM Mono', monospace; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -208,7 +214,7 @@ if not st.session_state.autenticado:
                 Portal de Auditoria &nbsp;·&nbsp; Acesso Restrito
             </div>
         </div>
-        <div style="background:#141824; border:1px solid #1F2433; border-radius:14px; padding:32px 28px 28px 28px;">
+        <div style="background:#FFFFFF; border:1px solid #E2E6F0; border-radius:14px; padding:32px 28px 28px 28px; box-shadow:0 4px 24px rgba(60,80,160,0.08);">
         """, unsafe_allow_html=True)
 
         if df_usuarios is None:
