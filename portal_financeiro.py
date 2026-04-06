@@ -20,10 +20,10 @@ st.markdown("""
 
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 
-.stApp { background-color: #0D0F14; color: #E8EAF0; }
+.stApp { background-color: #0F1520; color: #E8EAF0; }
 
 [data-testid="stSidebar"] {
-    background-color: #13161E !important;
+    background-color: #141824 !important;
     border-right: 1px solid #1F2433 !important;
 }
 [data-testid="stSidebar"] * { color: #C5C9D6 !important; }
@@ -36,8 +36,8 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 
 /* Cards de métricas */
 .metric-card {
-    background: linear-gradient(135deg, #161923 0%, #1A1E2C 100%);
-    border: 1px solid #242840;
+    background: linear-gradient(135deg, #181E2E 0%, #1C2235 100%);
+    border: 1px solid #2D3454;
     border-radius: 12px;
     padding: 20px 24px;
     position: relative;
@@ -55,14 +55,14 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 .metric-card.rose::before  { background: linear-gradient(90deg, #7A0C3A, #C4366A); }
 .metric-label {
     font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
-    text-transform: uppercase; color: #6B7394; margin-bottom: 8px;
+    text-transform: uppercase; color: #8892B0; margin-bottom: 8px;
 }
 .metric-value {
     font-family: 'DM Mono', monospace;
     font-size: 26px; font-weight: 500; color: #ECEEF6; line-height: 1.1;
 }
 .metric-value.large { font-size: 28px; color: #F0C040; }
-.metric-sub { font-size: 11px; color: #4A5068; margin-top: 6px; font-family: 'DM Mono', monospace; }
+.metric-sub { font-size: 11px; color: #6B7A99; margin-top: 6px; font-family: 'DM Mono', monospace; }
 
 /* Header */
 .app-header {
@@ -70,9 +70,9 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
     padding: 20px 0 20px 0; border-bottom: 1px solid #1A1E2C; margin-bottom: 28px;
 }
 .app-logo-name { font-size: 20px; font-weight: 600; color: #ECEEF6; letter-spacing: -0.02em; }
-.app-logo-sub  { font-size: 11px; color: #4A5068; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+.app-logo-sub  { font-size: 11px; color: #6B7A99; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
 .app-badge {
-    background: #161A26; border: 1px solid #242840; border-radius: 20px;
+    background: #161A26; border: 1px solid #2D3454; border-radius: 20px;
     padding: 5px 14px; font-size: 11px; font-family: 'DM Mono', monospace;
     color: #4F6BFF; letter-spacing: 0.05em;
 }
@@ -88,10 +88,10 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 /* Sidebar */
 .sidebar-logo { padding: 18px 0 14px 0; border-bottom: 1px solid #1F2433; margin-bottom: 12px; }
 .sidebar-logo-name { font-size: 15px; font-weight: 600; color: #ECEEF6 !important; }
-.sidebar-logo-sub  { font-size: 10px; color: #3A4060 !important; text-transform: uppercase; letter-spacing: 0.1em; }
+.sidebar-logo-sub  { font-size: 10px; color: #5A6680 !important; text-transform: uppercase; letter-spacing: 0.1em; }
 .sidebar-section   {
     font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-    color: #3A4060 !important; padding: 14px 0 6px 0;
+    color: #5A6680 !important; padding: 14px 0 6px 0;
 }
 
 /* Divider */
@@ -111,21 +111,21 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 
 /* Inputs */
 .stTextInput input, .stNumberInput input, .stSelectbox > div > div {
-    background-color: #161923 !important; border: 1px solid #242840 !important;
+    background-color: #181E2E !important; border: 1px solid #2D3454 !important;
     border-radius: 8px !important; color: #E8EAF0 !important;
 }
 
 /* Tabela */
-[data-testid="stDataFrame"] { border-radius: 10px !important; border: 1px solid #1F2433 !important; overflow: hidden !important; }
+[data-testid="stDataFrame"] { border-radius: 10px !important; border: 1px solid #2A3148 !important; overflow: hidden !important; }
 
 /* Expander */
 [data-testid="stExpander"] {
-    background: #13161E !important; border: 1px solid #1F2433 !important; border-radius: 10px !important;
+    background: #13161E !important; border: 1px solid #2A3148 !important; border-radius: 10px !important;
 }
 
 /* File uploader */
 [data-testid="stFileUploader"] {
-    background: #11141C !important; border: 1.5px dashed #2A2F42 !important; border-radius: 10px !important;
+    background: #111827 !important; border: 1.5px dashed #2A2F42 !important; border-radius: 10px !important;
 }
 
 /* Rodapé */
@@ -133,8 +133,8 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
     margin-top: 56px; padding: 20px 0 14px 0; border-top: 1px solid #1A1E2C;
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
 }
-.footer-brand { font-size: 12px; font-weight: 600; color: #3A4060; letter-spacing: 0.06em; }
-.footer-copy  { font-size: 11px; color: #252A3A; font-family: 'DM Mono', monospace; }
+.footer-brand { font-size: 12px; font-weight: 600; color: #5A6680; letter-spacing: 0.06em; }
+.footer-copy  { font-size: 11px; color: #445060; font-family: 'DM Mono', monospace; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -208,7 +208,7 @@ if not st.session_state.autenticado:
                 Portal de Auditoria &nbsp;·&nbsp; Acesso Restrito
             </div>
         </div>
-        <div style="background:#13161E; border:1px solid #1F2433; border-radius:14px; padding:32px 28px 28px 28px;">
+        <div style="background:#141824; border:1px solid #1F2433; border-radius:14px; padding:32px 28px 28px 28px;">
         """, unsafe_allow_html=True)
 
         if df_usuarios is None:
@@ -274,7 +274,7 @@ st.markdown(section("Relatório da Corretora"), unsafe_allow_html=True)
 arq = st.file_uploader("Arquivo .xlsx", type=["xlsx"], label_visibility="collapsed")
 
 if not arq:
-    st.markdown("""<div style="background:#0F1219; border:1.5px dashed #1F2433; border-radius:12px;
+    st.markdown("""<div style="background:#0D1424; border:1.5px dashed #1F2433; border-radius:12px;
                 padding:44px; text-align:center; margin-top:4px;">
         <div style="font-size:32px; margin-bottom:12px; opacity:0.3;">📂</div>
         <div style="font-size:13px; color:#3A4060;">Faça upload do relatório exportado da corretora para iniciar</div>
@@ -418,8 +418,7 @@ st.markdown(section(f"Resumo por Agente — {sel_com}"), unsafe_allow_html=True)
 
 st.dataframe(
     resumo.sort_values("TOTAL_COMISSAO", ascending=False)
-          .style.format({"TOTAL_COMISSAO": "R$ {:.2f}", "TOTAL_OPS": "{:.0f}"})
-          .background_gradient(subset=["TOTAL_COMISSAO"], cmap="Blues"),
+          .style.format({"TOTAL_COMISSAO": "R$ {:.2f}", "TOTAL_OPS": "{:.0f}"}),
     use_container_width=True,
     height=440,
 )
@@ -443,19 +442,19 @@ with st.expander("🔍 Selecionar agente para investigar", expanded=False):
 
         st.markdown(f"""
         <div style="display:flex; gap:14px; margin:14px 0 20px 0; flex-wrap:wrap;">
-            <div style="flex:1;min-width:150px;background:#161923;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
+            <div style="flex:1;min-width:150px;background:#181E2E;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
                 <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Comissão Total</div>
                 <div style="font-family:'DM Mono',monospace;font-size:22px;color:#F0C040;">{fmt_brl(total_com)}</div>
             </div>
-            <div style="flex:1;min-width:110px;background:#161923;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
+            <div style="flex:1;min-width:110px;background:#181E2E;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
                 <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Operações</div>
                 <div style="font-family:'DM Mono',monospace;font-size:22px;color:#ECEEF6;">{len(df_ag)}</div>
             </div>
-            <div style="flex:1;min-width:110px;background:#161923;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
+            <div style="flex:1;min-width:110px;background:#181E2E;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
                 <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Pacote</div>
                 <div style="font-family:'DM Mono',monospace;font-size:22px;color:#7B8CFF;">{pacote_ag}</div>
             </div>
-            <div style="flex:1;min-width:110px;background:#161923;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
+            <div style="flex:1;min-width:110px;background:#181E2E;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
                 <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Comercial</div>
                 <div style="font-family:'DM Mono',monospace;font-size:22px;color:#1DB87A;">{comercial_ag}</div>
             </div>
