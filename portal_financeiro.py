@@ -296,6 +296,8 @@ if len(periodo) == 2:
 # ──────────────────────────────────────────────────────────────
 df_raw["REALIZADO_POR"]      = df_raw["REALIZADO_POR"].apply(limpar)
 df_cadastro["REALIZADO_POR"] = df_cadastro["REALIZADO_POR"].apply(limpar)
+# Remove logins duplicados no cadastro (mantém primeira ocorrência)
+df_cadastro = df_cadastro.drop_duplicates(subset="REALIZADO_POR", keep="first")
 df = pd.merge(df_raw, df_cadastro, on="REALIZADO_POR", how="left")
 
 if "NOME_CONSOLIDADO" not in df.columns:
