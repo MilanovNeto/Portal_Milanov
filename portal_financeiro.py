@@ -7,9 +7,137 @@ import os
 # ──────────────────────────────────────────────────────────────
 # CONFIGURAÇÃO DA PÁGINA
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Portal Milanov v9", layout="wide", page_icon="💸")
+st.set_page_config(page_title="Milanov | Auditoria", layout="wide", page_icon="📊")
 
 REGRAS_PATH = "regras_milanov.xlsx"
+
+# ──────────────────────────────────────────────────────────────
+# CSS GLOBAL — TEMA ESCURO CORPORATIVO
+# ──────────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
+
+.stApp { background-color: #0D0F14; color: #E8EAF0; }
+
+[data-testid="stSidebar"] {
+    background-color: #13161E !important;
+    border-right: 1px solid #1F2433 !important;
+}
+[data-testid="stSidebar"] * { color: #C5C9D6 !important; }
+
+.block-container {
+    padding-top: 1.5rem !important;
+    padding-bottom: 2rem !important;
+    max-width: 1280px !important;
+}
+
+/* Cards de métricas */
+.metric-card {
+    background: linear-gradient(135deg, #161923 0%, #1A1E2C 100%);
+    border: 1px solid #242840;
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, #4F6BFF, #7B8CFF);
+}
+.metric-card.gold::before  { background: linear-gradient(90deg, #C9960C, #F0C040); }
+.metric-card.green::before { background: linear-gradient(90deg, #0C7A4F, #1DB87A); }
+.metric-card.rose::before  { background: linear-gradient(90deg, #7A0C3A, #C4366A); }
+.metric-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: #6B7394; margin-bottom: 8px;
+}
+.metric-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 26px; font-weight: 500; color: #ECEEF6; line-height: 1.1;
+}
+.metric-value.large { font-size: 28px; color: #F0C040; }
+.metric-sub { font-size: 11px; color: #4A5068; margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+/* Header */
+.app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0 20px 0; border-bottom: 1px solid #1A1E2C; margin-bottom: 28px;
+}
+.app-logo-name { font-size: 20px; font-weight: 600; color: #ECEEF6; letter-spacing: -0.02em; }
+.app-logo-sub  { font-size: 11px; color: #4A5068; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+.app-badge {
+    background: #161A26; border: 1px solid #242840; border-radius: 20px;
+    padding: 5px 14px; font-size: 11px; font-family: 'DM Mono', monospace;
+    color: #4F6BFF; letter-spacing: 0.05em;
+}
+
+/* Seções */
+.section-header {
+    display: flex; align-items: center; gap: 10px;
+    margin: 28px 0 14px 0; padding-bottom: 10px; border-bottom: 1px solid #1F2433;
+}
+.section-dot { width: 5px; height: 5px; border-radius: 50%; background: #4F6BFF; flex-shrink: 0; }
+.section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #7B8CFF; }
+
+/* Sidebar */
+.sidebar-logo { padding: 18px 0 14px 0; border-bottom: 1px solid #1F2433; margin-bottom: 12px; }
+.sidebar-logo-name { font-size: 15px; font-weight: 600; color: #ECEEF6 !important; }
+.sidebar-logo-sub  { font-size: 10px; color: #3A4060 !important; text-transform: uppercase; letter-spacing: 0.1em; }
+.sidebar-section   {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #3A4060 !important; padding: 14px 0 6px 0;
+}
+
+/* Divider */
+.divider { height: 1px; background: linear-gradient(90deg, transparent, #1F2433 20%, #1F2433 80%, transparent); margin: 24px 0; }
+
+/* Botões */
+.stButton > button, .stDownloadButton > button {
+    background: linear-gradient(135deg, #2D3A8C, #4F6BFF) !important;
+    color: white !important; border: none !important; border-radius: 8px !important;
+    font-family: 'DM Sans', sans-serif !important; font-weight: 500 !important;
+    font-size: 13px !important; letter-spacing: 0.02em !important; transition: opacity 0.2s !important;
+}
+.stButton > button:hover, .stDownloadButton > button:hover { opacity: 0.82 !important; }
+.stDownloadButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #0C5E38, #1DB87A) !important;
+}
+
+/* Inputs */
+.stTextInput input, .stNumberInput input, .stSelectbox > div > div {
+    background-color: #161923 !important; border: 1px solid #242840 !important;
+    border-radius: 8px !important; color: #E8EAF0 !important;
+}
+
+/* Tabela */
+[data-testid="stDataFrame"] { border-radius: 10px !important; border: 1px solid #1F2433 !important; overflow: hidden !important; }
+
+/* Expander */
+[data-testid="stExpander"] {
+    background: #13161E !important; border: 1px solid #1F2433 !important; border-radius: 10px !important;
+}
+
+/* File uploader */
+[data-testid="stFileUploader"] {
+    background: #11141C !important; border: 1.5px dashed #2A2F42 !important; border-radius: 10px !important;
+}
+
+/* Rodapé */
+.footer {
+    margin-top: 56px; padding: 20px 0 14px 0; border-top: 1px solid #1A1E2C;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+}
+.footer-brand { font-size: 12px; font-weight: 600; color: #3A4060; letter-spacing: 0.06em; }
+.footer-copy  { font-size: 11px; color: #252A3A; font-family: 'DM Mono', monospace; }
+</style>
+""", unsafe_allow_html=True)
+
 
 # ──────────────────────────────────────────────────────────────
 # FUNÇÕES UTILITÁRIAS
@@ -24,22 +152,45 @@ def norm_cols(df):
 def fmt_brl(v):
     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+def card(label, value, variant="default", sub=None):
+    val_class = "metric-value large" if variant == "gold" else "metric-value"
+    sub_html  = f'<div class="metric-sub">{sub}</div>' if sub else ""
+    return f"""<div class="metric-card {variant}">
+        <div class="metric-label">{label}</div>
+        <div class="{val_class}">{value}</div>{sub_html}
+    </div>"""
+
+def section(titulo):
+    return f"""<div class="section-header">
+        <div class="section-dot"></div>
+        <div class="section-title">{titulo}</div>
+    </div>"""
+
+def footer():
+    ano = datetime.today().year
+    return f"""<div class="footer">
+        <div class="footer-brand">MILANOV SERVIÇOS LTDA</div>
+        <div class="footer-copy">© {ano} &nbsp;·&nbsp; Portal de Auditoria de Comissões &nbsp;·&nbsp; Uso interno</div>
+    </div>"""
+
+
 # ──────────────────────────────────────────────────────────────
-# CARREGAMENTO DE REGRAS (cache)
+# CARREGAMENTO DE REGRAS
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
 def carregar_regras():
     if not os.path.exists(REGRAS_PATH):
-        return None, None, None
+        return None, None
     try:
-        df_usuarios  = norm_cols(pd.read_excel(REGRAS_PATH, sheet_name="Usuarios"))
-        df_cadastro  = norm_cols(pd.read_excel(REGRAS_PATH, sheet_name="Cadastro_Agentes"))
-        return df_usuarios, df_cadastro
+        df_u = norm_cols(pd.read_excel(REGRAS_PATH, sheet_name="Usuarios"))
+        df_c = norm_cols(pd.read_excel(REGRAS_PATH, sheet_name="Cadastro_Agentes"))
+        return df_u, df_c
     except Exception as e:
         st.error(f"Erro ao carregar regras: {e}")
         return None, None
 
 df_usuarios, df_cadastro = carregar_regras()
+
 
 # ──────────────────────────────────────────────────────────────
 # LOGIN
@@ -48,14 +199,25 @@ if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
 if not st.session_state.autenticado:
-    _, col, _ = st.columns([1, 1.1, 1])
+    _, col, _ = st.columns([1, 0.9, 1])
     with col:
-        st.markdown("## 🔐 Portal Milanov")
+        st.markdown("""
+        <div style="text-align:center; padding:48px 0 32px 0;">
+            <div style="font-size:38px; font-weight:700; color:#ECEEF6; letter-spacing:-0.03em;">Milanov</div>
+            <div style="font-size:11px; color:#3A4060; letter-spacing:0.14em; text-transform:uppercase; margin-top:5px;">
+                Portal de Auditoria &nbsp;·&nbsp; Acesso Restrito
+            </div>
+        </div>
+        <div style="background:#13161E; border:1px solid #1F2433; border-radius:14px; padding:32px 28px 28px 28px;">
+        """, unsafe_allow_html=True)
+
         if df_usuarios is None:
             st.error(f"Arquivo '{REGRAS_PATH}' não encontrado.")
             st.stop()
-        usuario = st.text_input("Usuário")
-        senha   = st.text_input("Senha", type="password")
+
+        usuario = st.text_input("Usuário", placeholder="seu.usuario")
+        senha   = st.text_input("Senha", type="password", placeholder="••••••")
+
         if st.button("Entrar", use_container_width=True, type="primary"):
             match = df_usuarios[df_usuarios["USUARIO"].apply(limpar) == limpar(usuario)]
             if not match.empty and str(senha).strip() == str(match.iloc[0]["SENHA"]).strip():
@@ -63,16 +225,61 @@ if not st.session_state.autenticado:
                 st.rerun()
             else:
                 st.error("Usuário ou senha incorretos.")
+
+        st.markdown("""</div>
+        <div style="text-align:center; margin-top:28px; font-size:11px; color:#252A3A; font-family:'DM Mono',monospace;">
+            MILANOV SERVIÇOS LTDA &nbsp;·&nbsp; Uso interno
+        </div>""", unsafe_allow_html=True)
     st.stop()
 
-# ──────────────────────────────────────────────────────────────
-# PAINEL PRINCIPAL
-# ──────────────────────────────────────────────────────────────
-st.title("💸 Portal Milanov — Auditoria de Comissões")
 
-arq = st.file_uploader("📁 Carregar Relatório da Corretora (.xlsx)", type=["xlsx"])
+# ──────────────────────────────────────────────────────────────
+# SIDEBAR
+# ──────────────────────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("""<div class="sidebar-logo">
+        <div class="sidebar-logo-name">Milanov</div>
+        <div class="sidebar-logo-sub">Auditoria de Comissões</div>
+    </div>
+    <div class="sidebar-section">Câmbio</div>""", unsafe_allow_html=True)
+
+    v_usd_brl = st.number_input("USD → BRL (Haiti)", value=5.48, format="%.4f",
+                                 help="Multiplica a comissão fixa de USD 2,50 para BRL")
+    v_htg_usd = st.number_input("HTG / USD", value=130.0, format="%.2f",
+                                 help="Converte VALOR_DESTINO em HTG para USD")
+
+    st.markdown('<div class="sidebar-section">Período</div>', unsafe_allow_html=True)
+    periodo_ph = st.empty()
+
+    st.markdown('<div class="sidebar-section">Filtro</div>', unsafe_allow_html=True)
+    comercial_ph = st.empty()
+
+
+# ──────────────────────────────────────────────────────────────
+# HEADER
+# ──────────────────────────────────────────────────────────────
+st.markdown("""<div class="app-header">
+    <div>
+        <div class="app-logo-name">Auditoria de Comissões</div>
+        <div class="app-logo-sub">Milanov Serviços Ltda &nbsp;·&nbsp; Portal Interno</div>
+    </div>
+    <div class="app-badge">v9.1</div>
+</div>""", unsafe_allow_html=True)
+
+
+# ──────────────────────────────────────────────────────────────
+# UPLOAD
+# ──────────────────────────────────────────────────────────────
+st.markdown(section("Relatório da Corretora"), unsafe_allow_html=True)
+arq = st.file_uploader("Arquivo .xlsx", type=["xlsx"], label_visibility="collapsed")
+
 if not arq:
-    st.info("Faça upload do relatório para iniciar a auditoria.")
+    st.markdown("""<div style="background:#0F1219; border:1.5px dashed #1F2433; border-radius:12px;
+                padding:44px; text-align:center; margin-top:4px;">
+        <div style="font-size:32px; margin-bottom:12px; opacity:0.3;">📂</div>
+        <div style="font-size:13px; color:#3A4060;">Faça upload do relatório exportado da corretora para iniciar</div>
+    </div>""", unsafe_allow_html=True)
+    st.markdown(footer(), unsafe_allow_html=True)
     st.stop()
 
 if df_cadastro is None:
@@ -81,43 +288,36 @@ if df_cadastro is None:
 
 df_raw = norm_cols(pd.read_excel(arq))
 
-# ──────────────────────────────────────────────────────────────
-# SIDEBAR — PARÂMETROS
-# ──────────────────────────────────────────────────────────────
-st.sidebar.header("⚙️ Parâmetros")
-v_usd_brl = st.sidebar.number_input("Câmbio USD → BRL (Haiti)", value=5.48, format="%.4f",
-                                     help="Usado para converter comissão fixa de USD 2,50 para BRL")
-v_htg_usd = st.sidebar.number_input("Cotação HTG / USD", value=130.0, format="%.2f",
-                                     help="Usado para converter VALOR_DESTINO em HTG para USD")
 
-# Filtro de período
+# ──────────────────────────────────────────────────────────────
+# FILTRO DE DATA
+# ──────────────────────────────────────────────────────────────
 if "DATA" in df_raw.columns:
     df_raw["DATA"] = pd.to_datetime(df_raw["DATA"], errors="coerce")
-    d_min = df_raw["DATA"].min().date()
-    d_max = df_raw["DATA"].max().date()
-    periodo = st.sidebar.date_input("📅 Período:", [d_min, d_max])
+    d_min, d_max   = df_raw["DATA"].min().date(), df_raw["DATA"].max().date()
+    with periodo_ph:
+        periodo = st.date_input("Período", [d_min, d_max], label_visibility="collapsed")
     if len(periodo) == 2:
         df_raw = df_raw[
             (df_raw["DATA"].dt.date >= periodo[0]) &
             (df_raw["DATA"].dt.date <= periodo[1])
         ]
 
+
 # ──────────────────────────────────────────────────────────────
 # CRUZAMENTO COM CADASTRO
 # ──────────────────────────────────────────────────────────────
 df_raw["REALIZADO_POR"]      = df_raw["REALIZADO_POR"].apply(limpar)
 df_cadastro["REALIZADO_POR"] = df_cadastro["REALIZADO_POR"].apply(limpar)
-
 df = pd.merge(df_raw, df_cadastro, on="REALIZADO_POR", how="left")
 
-# Nome consolidado: alias do cadastro ou código bruto
 if "NOME_CONSOLIDADO" not in df.columns:
     df["NOME_CONSOLIDADO"] = df["REALIZADO_POR"]
 else:
     df["NOME_CONSOLIDADO"] = df["NOME_CONSOLIDADO"].fillna(df["REALIZADO_POR"])
 
-# Pacote: garante string limpa, default "20"
 df["ID_PACOTE_COMISSAO"] = df["ID_PACOTE_COMISSAO"].fillna(20).astype(int).astype(str)
+
 
 # ──────────────────────────────────────────────────────────────
 # FILTRO DE COMERCIAL
@@ -125,26 +325,25 @@ df["ID_PACOTE_COMISSAO"] = df["ID_PACOTE_COMISSAO"].fillna(20).astype(int).astyp
 sel_com = "TODOS"
 if "COMERCIAL" in df.columns:
     lista_com = ["TODOS"] + sorted(df["COMERCIAL"].dropna().unique().tolist())
-    sel_com   = st.sidebar.selectbox("👤 Filtrar Comercial:", lista_com)
+    with comercial_ph:
+        sel_com = st.selectbox("Comercial", lista_com, label_visibility="collapsed")
     if sel_com != "TODOS":
         df = df[df["COMERCIAL"] == sel_com]
 
+
 # ──────────────────────────────────────────────────────────────
-# ORDENAÇÃO E CONTAGEM DE OPERAÇÕES POR NOME_CONSOLIDADO
-# (a contagem é por NOME_CONSOLIDADO para agentes com múltiplos logins)
+# ORDENAÇÃO E CONTAGEM
 # ──────────────────────────────────────────────────────────────
 df = df.sort_values(["NOME_CONSOLIDADO", "DATA"]).reset_index(drop=True)
 df["ORDEM"] = df.groupby("NOME_CONSOLIDADO").cumcount() + 1
 
+
 # ──────────────────────────────────────────────────────────────
 # MOTOR DE CÁLCULO
-#
-# HIERARQUIA:
-#   1. Pacote 40 → 60% fixo sobre COSTO_DE_ENVIO_BRL (qualquer país)
-#   2. Haiti / HTG:
-#        ≤ 100 USD → USD 2,50 × câmbio BRL
-#        > 100 USD → escalonamento (ORDEM ≤ 100 → 50% | > 100 → 60%)
-#   3. Qualquer outro país → escalonamento (ORDEM ≤ 100 → 50% | > 100 → 60%)
+# Hierarquia:
+#   1. Pacote 40  → 60% fixo (qualquer país)
+#   2. Haiti/HTG  → R$2,50×câmbio (≤100 USD) | 50%/60% (>100 USD)
+#   3. Outros     → 30% (≤50 ops) / 50% (≤100) / 60% (>100)
 # ──────────────────────────────────────────────────────────────
 def calcular_comissao(row):
     custo  = float(row.get("COSTO_DE_ENVIO_BRL", 0) or 0)
@@ -154,32 +353,25 @@ def calcular_comissao(row):
     pacote = str(row.get("ID_PACOTE_COMISSAO", "20")).strip()
     ordem  = int(row.get("ORDEM", 1))
 
-    # ── 1. PACOTE 40: sempre 60% ──────────────────────────────
     if pacote == "40":
         return custo * 0.60
 
-    # ── 2. HAITI / HTG ───────────────────────────────────────
     is_haiti = (pais == "HAITI" or moeda == "HTG")
     if is_haiti:
-        # Converte para USD
-        if moeda == "HTG":
-            v_usd = v_dest / v_htg_usd if v_htg_usd > 0 else 0
-        else:
-            # Moeda já é USD (destino Haiti com moeda USD)
-            v_usd = v_dest
-
+        v_usd = v_dest / v_htg_usd if moeda == "HTG" else v_dest
         if v_usd <= 100:
-            return 2.50 * v_usd_brl          # comissão fixa: USD 2,50 em BRL
+            return 2.50 * v_usd_brl
+        return custo * 0.50 if ordem <= 100 else custo * 0.60
 
-        # Acima de 100 USD → escalonamento (cai no bloco abaixo)
-
-    # ── 3. ESCALONAMENTO (pacote 20 ou Haiti > 100 USD) ──────
-    if ordem <= 100:
+    if ordem <= 50:
+        return custo * 0.30
+    elif ordem <= 100:
         return custo * 0.50
     else:
         return custo * 0.60
 
 df["VALOR_COMISSAO"] = df.apply(calcular_comissao, axis=1)
+
 
 # ──────────────────────────────────────────────────────────────
 # RESUMO CONSOLIDADO
@@ -188,56 +380,88 @@ group_cols = ["COMERCIAL", "NOME_CONSOLIDADO"] if "COMERCIAL" in df.columns else
 
 resumo = (
     df.groupby(group_cols)
-    .agg(
-        TOTAL_OPS    =("ORDEM", "max"),
-        TOTAL_COMISSAO=("VALOR_COMISSAO", "sum"),
-    )
+    .agg(TOTAL_OPS=("ORDEM", "max"), TOTAL_COMISSAO=("VALOR_COMISSAO", "sum"))
     .reset_index()
 )
 
+
 # ──────────────────────────────────────────────────────────────
-# EXIBIÇÃO — MÉTRICAS RÁPIDAS
+# CARDS DE MÉTRICAS
 # ──────────────────────────────────────────────────────────────
-st.subheader(f"📋 Resumo de Comissões — {sel_com}")
+st.markdown(section("Visão Geral"), unsafe_allow_html=True)
+
+periodo_str = "—"
+if "DATA" in df.columns and df["DATA"].notna().any():
+    periodo_str = f"{df['DATA'].min().strftime('%d/%m/%y')} → {df['DATA'].max().strftime('%d/%m/%y')}"
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Agentes",          resumo["NOME_CONSOLIDADO"].nunique())
-c2.metric("Operações",        f"{len(df):,}".replace(",", "."))
-c3.metric("Total Comissões",  fmt_brl(resumo["TOTAL_COMISSAO"].sum()))
-c4.metric("Período",          f"{df['DATA'].min().strftime('%d/%m/%y')} → {df['DATA'].max().strftime('%d/%m/%y')}"
-                               if "DATA" in df.columns else "—")
+with c1:
+    st.markdown(card("Total Comissões", fmt_brl(resumo["TOTAL_COMISSAO"].sum()), "gold",
+                     sub=f"Filtro: {sel_com}"), unsafe_allow_html=True)
+with c2:
+    st.markdown(card("Agentes Ativos", str(resumo["NOME_CONSOLIDADO"].nunique()), "default",
+                     sub="logins consolidados"), unsafe_allow_html=True)
+with c3:
+    st.markdown(card("Operações", f"{len(df):,}".replace(",", "."), "green",
+                     sub=periodo_str), unsafe_allow_html=True)
+with c4:
+    media = resumo["TOTAL_COMISSAO"].mean() if len(resumo) else 0
+    st.markdown(card("Ticket Médio / Agente", fmt_brl(media), "rose",
+                     sub="comissão média"), unsafe_allow_html=True)
 
-st.markdown("---")
 
-# Tabela resumo
-fmt = {"TOTAL_COMISSAO": "R$ {:.2f}", "TOTAL_OPS": "{:.0f}"}
+# ──────────────────────────────────────────────────────────────
+# TABELA RESUMO
+# ──────────────────────────────────────────────────────────────
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+st.markdown(section(f"Resumo por Agente — {sel_com}"), unsafe_allow_html=True)
+
 st.dataframe(
-    resumo.sort_values(group_cols)
-          .style.format(fmt),
+    resumo.sort_values("TOTAL_COMISSAO", ascending=False)
+          .style.format({"TOTAL_COMISSAO": "R$ {:.2f}", "TOTAL_OPS": "{:.0f}"})
+          .background_gradient(subset=["TOTAL_COMISSAO"], cmap="Blues"),
     use_container_width=True,
-    height=420,
+    height=440,
 )
 
+
 # ──────────────────────────────────────────────────────────────
-# INVESTIGAÇÃO POR AGENTE
+# DRILL-DOWN POR AGENTE
 # ──────────────────────────────────────────────────────────────
-st.markdown("---")
-with st.expander("🔍 Investigar Agente em Detalhe"):
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+st.markdown(section("Drill-down por Agente"), unsafe_allow_html=True)
+
+with st.expander("🔍 Selecionar agente para investigar", expanded=False):
     agentes = ["Selecione..."] + sorted(resumo["NOME_CONSOLIDADO"].unique().tolist())
-    sel_ag  = st.selectbox("Agente:", agentes)
+    sel_ag  = st.selectbox("Agente:", agentes, label_visibility="collapsed")
 
     if sel_ag != "Selecione...":
-        df_ag = df[df["NOME_CONSOLIDADO"] == sel_ag].copy()
+        df_ag        = df[df["NOME_CONSOLIDADO"] == sel_ag].copy()
+        total_com    = df_ag["VALOR_COMISSAO"].sum()
+        pacote_ag    = df_ag["ID_PACOTE_COMISSAO"].mode()[0] if len(df_ag) else "—"
+        comercial_ag = df_ag["COMERCIAL"].iloc[0] if "COMERCIAL" in df_ag.columns else "—"
 
-        total_com = df_ag["VALOR_COMISSAO"].sum()
-        pacote_ag = df_ag["ID_PACOTE_COMISSAO"].mode()[0] if len(df_ag) else "—"
+        st.markdown(f"""
+        <div style="display:flex; gap:14px; margin:14px 0 20px 0; flex-wrap:wrap;">
+            <div style="flex:1;min-width:150px;background:#161923;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
+                <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Comissão Total</div>
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#F0C040;">{fmt_brl(total_com)}</div>
+            </div>
+            <div style="flex:1;min-width:110px;background:#161923;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
+                <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Operações</div>
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#ECEEF6;">{len(df_ag)}</div>
+            </div>
+            <div style="flex:1;min-width:110px;background:#161923;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
+                <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Pacote</div>
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#7B8CFF;">{pacote_ag}</div>
+            </div>
+            <div style="flex:1;min-width:110px;background:#161923;border:1px solid #242840;border-radius:10px;padding:16px 20px;">
+                <div style="font-size:10px;color:#4A5068;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Comercial</div>
+                <div style="font-family:'DM Mono',monospace;font-size:22px;color:#1DB87A;">{comercial_ag}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        ca, cb, cc = st.columns(3)
-        ca.metric("Total Comissão",  fmt_brl(total_com))
-        cb.metric("Total Operações", len(df_ag))
-        cc.metric("Pacote",          pacote_ag)
-
-        # Colunas relevantes para exibir
         cols_det = [c for c in [
             "ORDEM", "DATA", "REALIZADO_POR", "PAIS_DESTINO",
             "MOEDA_DESTINO", "VALOR_DESTINO", "COSTO_DE_ENVIO_BRL",
@@ -253,33 +477,50 @@ with st.expander("🔍 Investigar Agente em Detalhe"):
             use_container_width=True,
         )
 
-        # Download individual
         buf = io.BytesIO()
         with pd.ExcelWriter(buf, engine="openpyxl") as writer:
             df_ag[cols_det].to_excel(writer, index=False, sheet_name="Detalhe")
             resumo[resumo["NOME_CONSOLIDADO"] == sel_ag].to_excel(writer, index=False, sheet_name="Resumo")
+
         st.download_button(
-            label=f"📥 Baixar Excel — {sel_ag}",
+            label=f"📥 Exportar Excel — {sel_ag}",
             data=buf.getvalue(),
             file_name=f"comissao_{sel_ag}_{datetime.today().strftime('%Y%m%d')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
+
 # ──────────────────────────────────────────────────────────────
 # EXPORTAÇÃO GERAL
 # ──────────────────────────────────────────────────────────────
-st.markdown("---")
-st.subheader("📤 Exportar Relatório Completo")
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+st.markdown(section("Exportar Relatório Completo"), unsafe_allow_html=True)
 
-buf_geral = io.BytesIO()
-with pd.ExcelWriter(buf_geral, engine="openpyxl") as writer:
-    resumo.to_excel(writer, index=False, sheet_name="Resumo")
-    df.to_excel(writer, index=False, sheet_name="Detalhes")
+col_btn, col_info = st.columns([1, 2])
+with col_btn:
+    buf_geral = io.BytesIO()
+    with pd.ExcelWriter(buf_geral, engine="openpyxl") as writer:
+        resumo.to_excel(writer, index=False, sheet_name="Resumo")
+        df.to_excel(writer, index=False, sheet_name="Detalhes")
 
-st.download_button(
-    label="📥 Baixar Relatório Completo",
-    data=buf_geral.getvalue(),
-    file_name=f"auditoria_milanov_{datetime.today().strftime('%Y%m%d_%H%M')}.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    type="primary",
-)
+    st.download_button(
+        label="📥 Baixar Relatório Completo",
+        data=buf_geral.getvalue(),
+        file_name=f"auditoria_milanov_{datetime.today().strftime('%Y%m%d_%H%M')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        type="primary",
+        use_container_width=True,
+    )
+with col_info:
+    st.markdown(f"""
+    <div style="padding:12px 0; font-size:12px; color:#3A4060; font-family:'DM Mono',monospace; line-height:2;">
+        {resumo['NOME_CONSOLIDADO'].nunique()} agentes &nbsp;·&nbsp;
+        {len(df)} operações &nbsp;·&nbsp;
+        gerado em {datetime.today().strftime('%d/%m/%Y %H:%M')}
+    </div>""", unsafe_allow_html=True)
+
+
+# ──────────────────────────────────────────────────────────────
+# RODAPÉ
+# ──────────────────────────────────────────────────────────────
+st.markdown(footer(), unsafe_allow_html=True)
