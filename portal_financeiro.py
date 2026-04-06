@@ -3,6 +3,10 @@ import pandas as pd
 from datetime import datetime
 import io
 import os
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.express as px
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Milanov | Auditoria", layout="wide", page_icon="📊")
 
@@ -241,6 +245,12 @@ with st.sidebar:
     st.markdown('<div class="sidebar-section">Filtro</div>', unsafe_allow_html=True)
     comercial_ph = st.empty()
 
+    st.markdown('<div class="sidebar-section">Navegação</div>', unsafe_allow_html=True)
+    pagina = st.radio("", ["📋 Auditoria", "📊 Dashboard"], label_visibility="collapsed")
+
+    st.markdown('<div class="sidebar-section">Navegação</div>', unsafe_allow_html=True)
+    pagina = st.radio("", ["📋 Auditoria", "📊 Dashboard"], label_visibility="collapsed")
+
 
 # ──────────────────────────────────────────────────────────────
 # HEADER
@@ -381,6 +391,151 @@ resumo = (
 )
 
 
+
+# ──────────────────────────────────────────────────────────────
+# DASHBOARD
+# ──────────────────────────────────────────────────────────────
+if pagina == "📊 Dashboard":
+    st.markdown(section("Dashboard de Performance"), unsafe_allow_html=True)
+    CORES = ["#4F6BFF","#1DB87A","#F0C040","#D94F8E","#FF8C42","#7B8CFF"]
+    df["TARIFA"] = df["COSTO_DE_ENVIO_BRL"]
+
+    def chart_title(t):
+        st.markdown(f'<div style="font-size:12px;font-weight:600;color:#3A5FD9;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">{t}</div>', unsafe_allow_html=True)
+
+    # ROW 1: Volume e Comissão por país
+    col1, col2 = st.columns(2)
+    with col1:
+        chart_title("Volume de Operações por País")
+        d = df.groupby("PAIS_DESTINO").size().reset_index(name="OPS").sort_values("OPS", ascending=True).tail(12)
+        fig = px.bar(d, x="OPS", y="PAIS_DESTINO", orientation="h",
+                     color="OPS", color_continuous_scale=["#C8D4FF","#4F6BFF"],
+                     labels={"OPS":"Operações","PAIS_DESTINO":"País"})
+        fig.update_layout(showlegend=False, coloraxis_showscale=False,
+                          plot_bgcolor="white", paper_bgcolor="white",
+                          margin=dict(l=0,r=10,t=5,b=5), height=340,
+                          font=dict(family="DM Sans",size=12,color="#1A1E2C"),
+                          xaxis=dict(gridcolor="#F0F2F8"),
+                          yaxis=dict(gridcolor="rgba(0,0,0,0)"))
+        st.plotly_chart(fig, use_container_width=True)
+    with col2:
+        chart_title("Comissão Total por País")
+        d = df.groupby("PAIS_DESTINO")["VALOR_COMISSAO"].sum().reset_index().sort_values("VALOR_COMISSAO", ascending=True).tail(12)
+        fig = px.bar(d, x="VALOR_COMISSAO", y="PAIS_DESTINO", orientation="h",
+                     color="VALOR_COMISSAO", color_continuous_scale=["#B8F0D8","#1DB87A"],
+                     labels={"VALOR_COMISSAO":"Comissão (R$)","PAIS_DESTINO":"País"})
+        fig.update_layout(showlegend=False, coloraxis_showscale=False,
+                          plot_bgcolor="white", paper_bgcolor="white",
+                          margin=dict(l=0,r=10,t=5,b=5), height=340,
+                          font=dict(family="DM Sans",size=12,color="#1A1E2C"),
+                          xaxis=dict(gridcolor="#F0F2F8", tickprefix="R$ "),
+                          yaxis=dict(gridcolor="rgba(0,0,0,0)"))
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # ROW 2: Evolução diária + Tarifa média por país
+    col3, col4 = st.columns(2)
+    with col3:
+        chart_title("Evolução Diária de Operações")
+        d = df.groupby(df["DATA"].dt.date).size().reset_index(name="OPS")
+        d.columns = ["DATA","OPS"]
+        fig = px.line(d, x="DATA", y="OPS", color_discrete_sequence=["#4F6BFF"],
+                      labels={"DATA":"Data","OPS":"Operações"})
+        fig.update_traces(line_width=2.5, fill="tozeroy", fillcolor="rgba(79,107,255,0.08)")
+        fig.update_layout(plot_bgcolor="white", paper_bgcolor="white",
+                          margin=dict(l=0,r=10,t=5,b=5), height=300,
+                          font=dict(family="DM Sans",size=12,color="#1A1E2C"),
+                          xaxis=dict(gridcolor="#F0F2F8"),
+                          yaxis=dict(gridcolor="#F0F2F8"))
+        st.plotly_chart(fig, use_container_width=True)
+    with col4:
+        chart_title("Tarifa Média por País (R$)")
+        d = df.groupby("PAIS_DESTINO")["TARIFA"].mean().reset_index()
+        d.columns = ["PAIS_DESTINO","TARIFA_MEDIA"]
+        d = d.sort_values("TARIFA_MEDIA", ascending=False).head(12)
+        fig = px.bar(d, x="PAIS_DESTINO", y="TARIFA_MEDIA",
+                     color="TARIFA_MEDIA", color_continuous_scale=["#FFF3CD","#F0C040"],
+                     labels={"TARIFA_MEDIA":"Tarifa Média (R$)","PAIS_DESTINO":"País"})
+        fig.update_layout(showlegend=False, coloraxis_showscale=False,
+                          plot_bgcolor="white", paper_bgcolor="white",
+                          margin=dict(l=0,r=10,t=5,b=5), height=300,
+                          font=dict(family="DM Sans",size=12,color="#1A1E2C"),
+                          xaxis=dict(gridcolor="rgba(0,0,0,0)", tickangle=-30),
+                          yaxis=dict(gridcolor="#F0F2F8", tickprefix="R$ "))
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # ROW 3: Top agentes
+    col5, col6 = st.columns(2)
+    with col5:
+        chart_title("Top 15 Agentes por Volume")
+        d = df.groupby("NOME_CONSOLIDADO").size().reset_index(name="OPS").sort_values("OPS", ascending=True).tail(15)
+        fig = px.bar(d, x="OPS", y="NOME_CONSOLIDADO", orientation="h",
+                     color="OPS", color_continuous_scale=["#C8D4FF","#4F6BFF"],
+                     labels={"OPS":"Operações","NOME_CONSOLIDADO":"Agente"})
+        fig.update_layout(showlegend=False, coloraxis_showscale=False,
+                          plot_bgcolor="white", paper_bgcolor="white",
+                          margin=dict(l=0,r=10,t=5,b=5), height=440,
+                          font=dict(family="DM Sans",size=11,color="#1A1E2C"),
+                          xaxis=dict(gridcolor="#F0F2F8"),
+                          yaxis=dict(gridcolor="rgba(0,0,0,0)"))
+        st.plotly_chart(fig, use_container_width=True)
+    with col6:
+        chart_title("Top 15 Agentes por Comissão")
+        d = df.groupby("NOME_CONSOLIDADO")["VALOR_COMISSAO"].sum().reset_index().sort_values("VALOR_COMISSAO", ascending=True).tail(15)
+        fig = px.bar(d, x="VALOR_COMISSAO", y="NOME_CONSOLIDADO", orientation="h",
+                     color="VALOR_COMISSAO", color_continuous_scale=["#B8F0D8","#1DB87A"],
+                     labels={"VALOR_COMISSAO":"Comissão (R$)","NOME_CONSOLIDADO":"Agente"})
+        fig.update_layout(showlegend=False, coloraxis_showscale=False,
+                          plot_bgcolor="white", paper_bgcolor="white",
+                          margin=dict(l=0,r=10,t=5,b=5), height=440,
+                          font=dict(family="DM Sans",size=11,color="#1A1E2C"),
+                          xaxis=dict(gridcolor="#F0F2F8", tickprefix="R$ "),
+                          yaxis=dict(gridcolor="rgba(0,0,0,0)"))
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # ROW 4: Performance por comercial
+    col7, col8 = st.columns(2)
+    with col7:
+        chart_title("Performance por Comercial")
+        if "COMERCIAL" in df.columns:
+            perf = df.groupby("COMERCIAL").agg(
+                OPS=("VALOR_COMISSAO","count"),
+                COMISSAO=("VALOR_COMISSAO","sum")
+            ).reset_index().sort_values("COMISSAO", ascending=False)
+            fig = go.Figure()
+            fig.add_trace(go.Bar(name="Operações", x=perf["COMERCIAL"], y=perf["OPS"],
+                                 marker_color="#4F6BFF", yaxis="y"))
+            fig.add_trace(go.Bar(name="Comissão (R$)", x=perf["COMERCIAL"], y=perf["COMISSAO"],
+                                 marker_color="#1DB87A", yaxis="y2"))
+            fig.update_layout(barmode="group", plot_bgcolor="white", paper_bgcolor="white",
+                              margin=dict(l=0,r=40,t=5,b=5), height=320,
+                              font=dict(family="DM Sans",size=12,color="#1A1E2C"),
+                              legend=dict(orientation="h", y=1.1),
+                              yaxis=dict(title="Operações", gridcolor="#F0F2F8"),
+                              yaxis2=dict(title="Comissão (R$)", overlaying="y", side="right",
+                                          tickprefix="R$ ", gridcolor="rgba(0,0,0,0)"))
+            st.plotly_chart(fig, use_container_width=True)
+    with col8:
+        chart_title("Distribuição de Comissão por Comercial")
+        if "COMERCIAL" in df.columns:
+            pizza = df.groupby("COMERCIAL")["VALOR_COMISSAO"].sum().reset_index()
+            fig = px.pie(pizza, names="COMERCIAL", values="VALOR_COMISSAO",
+                         color_discrete_sequence=CORES, hole=0.45)
+            fig.update_traces(textposition="outside", textinfo="label+percent",
+                              pull=[0.03]*len(pizza))
+            fig.update_layout(showlegend=False, plot_bgcolor="white", paper_bgcolor="white",
+                              margin=dict(l=20,r=20,t=20,b=20), height=320,
+                              font=dict(family="DM Sans",size=12,color="#1A1E2C"))
+            st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown(footer(), unsafe_allow_html=True)
+    st.stop()
+
 # ──────────────────────────────────────────────────────────────
 # CARDS DE MÉTRICAS
 # ──────────────────────────────────────────────────────────────
@@ -456,7 +611,7 @@ with st.expander("🔍 Selecionar agente para investigar", expanded=False):
         """, unsafe_allow_html=True)
 
         cols_det = [c for c in [
-            "ORDEM", "DATA", "REALIZADO_POR", "PAIS_DESTINO",
+            "REFERENCIA", "ORDEM", "DATA", "REALIZADO_POR", "PAIS_DESTINO",
             "MOEDA_DESTINO", "VALOR_DESTINO", "COSTO_DE_ENVIO_BRL",
             "ID_PACOTE_COMISSAO", "VALOR_COMISSAO"
         ] if c in df_ag.columns]
