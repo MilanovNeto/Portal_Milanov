@@ -9,7 +9,7 @@ import os
 # ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Milanov | Auditoria Pro", layout="wide", page_icon="📊")
 
-# CSS - Recuperando o design visual completo
+# CSS - Recuperando o design visual completo e corrigindo fontes
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
@@ -18,11 +18,11 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif !important; }
 .metric-card {
     background-color: white; padding: 20px; border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #E2E8F0;
-    text-align: center;
+    text-align: center; margin-bottom: 15px;
 }
-.section-title {
-    color: #1A1E2C; font-size: 24px; font-weight: 600; margin-bottom: 20px;
-}
+.metric-card h3 { margin: 0; color: #1A1E2C; font-size: 22px; }
+.metric-card p { margin: 5px 0 0 0; color: #64748B; font-size: 14px; }
+.section-title { color: #1A1E2C; font-size: 24px; font-weight: 600; margin-bottom: 20px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -54,7 +54,7 @@ def carregar_regras():
 df_usuarios, df_cadastro = carregar_regras()
 
 # ──────────────────────────────────────────────────────────────
-# SISTEMA DE LOGIN (DESIGN RECUPERADO)
+# SISTEMA DE LOGIN
 # ──────────────────────────────────────────────────────────────
 if 'autenticado' not in st.session_state:
     st.session_state.autenticado = False
@@ -81,18 +81,15 @@ if not st.session_state.autenticado:
 # ──────────────────────────────────────────────────────────────
 st.markdown("<h1 class='section-title'>📊 Auditoria de Comissões</h1>", unsafe_allow_html=True)
 
-# Upload
 arq = st.file_uploader("📂 Arraste o relatório da corretora aqui", type=['xlsx', 'csv'])
 
 if arq and df_cadastro is not None:
     df_raw = normalizar_colunas(pd.read_csv(arq) if arq.name.endswith('.csv') else pd.read_excel(arq))
     
-    # Sidebar de Configurações
     st.sidebar.header("⚙️ Configurações")
     v_usd_haiti = st.sidebar.number_input("Câmbio USD Haiti (BRL)", value=5.48)
     v_htg_usd = st.sidebar.number_input("Cotação HTG / USD", value=131.0)
     
-    # Processamento de Dados
     df_raw['REALIZADO_POR'] = df_raw['REALIZADO_POR'].apply(limpar_texto)
     df_cadastro['REALIZADO_POR'] = df_cadastro['REALIZADO_POR'].apply(limpar_texto)
     
@@ -105,7 +102,7 @@ if arq and df_cadastro is not None:
     
     df['ORDEM'] = df.groupby('NOME_CONSOLIDADO').cumcount() + 1
 
-    # --- MOTOR DE CÁLCULO REVISADO ---
+    # --- MOTOR DE CÁLCULO ---
     def motor(row):
         custo = row.get('COSTO_DE_ENVIO_BRL', 0)
         v_dest = row.get('VALOR_DESTINO', 0)
@@ -121,34 +118,4 @@ if arq and df_cadastro is not None:
                 return 2.50 * v_usd_haiti
             return custo * 0.60 if ordem > 100 else custo * 0.50
         else:
-            if ordem <= 50: return custo * 0.30
-            elif ordem <= 100: return custo * 0.50
-            else: return custo * 0.60
-
-    df['VALOR_COMISSAO'] = df.apply(motor, axis=1)
-
-    # --- CARDS DE MÉTRICAS ---
-    m1, m2, m3, m4 = st.columns(4)
-    with m1: st.markdown(f"<div class='metric-card'><h3>R$ {df['VALOR_COMISSAO'].sum():,.2f}</h3><p>Total Comissões</p></div>", unsafe_allow_html=True)
-    with m2: st.markdown(f"<div class='metric-card'><h3>{len(df)}</h3><p>Operações</p></div>", unsafe_allow_html=True)
-    with m3: st.markdown(f"<div class='metric-card'><h3>{df['NOME_CONSOLIDADO'].nunique()}</h3><p>Agentes</p></div>", unsafe_allow_html=True)
-    with m4: st.markdown(f"<div class='metric-card'><h3>R$ {df['COSTO_DE_ENVIO_BRL'].sum():,.2f}</h3><p>Custo Total</p></div>", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # --- TABELA RESUMO ---
-    resumo = df.groupby(['COMERCIAL', 'NOME_CONSOLIDADO'])['VALOR_COMISSAO'].sum().reset_index()
-    st.subheader("📋 Resumo por Agente")
-    st.dataframe(resumo.style.format({'VALOR_COMISSAO': 'R$ {:.2f}'}), use_container_width=True)
-
-    # --- DETALHAMENTO E EXPORTAÇÃO ---
-    st.markdown("---")
-    c_btn, c_empty = st.columns([1, 2])
-    with c_btn:
-        buf = io.BytesIO()
-        with pd.ExcelWriter(buf, engine='openpyxl') as writer:
-            resumo.to_excel(writer, index=False, sheet_name='Resumo')
-            df.to_excel(writer, index=False, sheet_name='Detalhes')
-        st.download_button("📥 Baixar Relatório Completo", buf.getvalue(), "auditoria_milanov.xlsx", type="primary", use_container_width=True)
-
-    with st.expander("🔍 Auditoria Detalhada por Agente"):
+            if ordem <= 50: return custo * 0.3
