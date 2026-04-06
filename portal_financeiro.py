@@ -197,6 +197,12 @@ def carregar_regras():
 
 df_usuarios, df_cadastro = carregar_regras()
 
+# Garante que não há cache de versão anterior
+if "versao" not in st.session_state:
+    carregar_regras.clear()
+    st.session_state.versao = "9.1"
+
+
 
 # ──────────────────────────────────────────────────────────────
 # LOGIN
