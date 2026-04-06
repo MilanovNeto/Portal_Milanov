@@ -300,6 +300,10 @@ if df_cadastro is None:
 
 df_raw = norm_cols(pd.read_excel(arq))
 
+# Remove linhas de rodapé/totais: sem DATA válida ou sem REALIZADO_POR
+df_raw = df_raw[df_raw["DATA"].notna() & df_raw["REALIZADO_POR"].notna()]
+df_raw = df_raw[pd.to_datetime(df_raw["DATA"], errors="coerce").notna()]
+
 
 # ──────────────────────────────────────────────────────────────
 # FILTRO DE DATA
