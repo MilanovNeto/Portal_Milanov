@@ -165,6 +165,8 @@ def carregar_regras():
     try:
         df_u = norm_cols(pd.read_excel(REGRAS_PATH, sheet_name="Usuarios"))
         df_c = norm_cols(pd.read_excel(REGRAS_PATH, sheet_name="Cadastro_Agentes"))
+        # Remove logins duplicados no cadastro — evita linhas extras no merge
+        df_c = df_c.drop_duplicates(subset="REALIZADO_POR", keep="last")
         return df_u, df_c
     except Exception as e:
         st.error(f"Erro ao carregar regras: {e}")
@@ -297,7 +299,7 @@ if len(periodo) == 2:
 df_raw["REALIZADO_POR"]      = df_raw["REALIZADO_POR"].apply(limpar)
 df_cadastro["REALIZADO_POR"] = df_cadastro["REALIZADO_POR"].apply(limpar)
 # Remove logins duplicados no cadastro (mantém primeira ocorrência)
-df_cadastro = df_cadastro.drop_duplicates(subset="REALIZADO_POR", keep="first")
+# drop_duplicates movido para carregar_regras()
 df = pd.merge(df_raw, df_cadastro, on="REALIZADO_POR", how="left")
 
 if "NOME_CONSOLIDADO" not in df.columns:
