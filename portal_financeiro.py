@@ -249,7 +249,6 @@ with st.sidebar:
     pagina = st.radio("", ["📋 Auditoria", "📊 Dashboard"], label_visibility="collapsed", key="nav_pagina")
 
     st.markdown('<div class="sidebar-section">Navegação</div>', unsafe_allow_html=True)
-    pagina = st.radio("", ["📋 Auditoria", "📊 Dashboard"], label_visibility="collapsed", key="nav_pagina")
 
 
 # ──────────────────────────────────────────────────────────────
