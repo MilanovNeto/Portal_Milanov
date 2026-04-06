@@ -4,10 +4,19 @@ from datetime import datetime
 import io
 import os
 
+st.set_page_config(page_title="Milanov | Auditoria v8.7", layout="wide", page_icon="📊")
+
 # ──────────────────────────────────────────────────────────────
-# CONFIGURAÇÃO E INTERFACE
+# CSS — TEMA CLARO CORPORATIVO (IGUAL À SUA VERSÃO ANTERIOR)
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Milanov | Auditoria v8.6", layout="wide", page_icon="📊")
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+html, body, [class*="css"] { font-family: 'DM Sans', sans-serif !important; }
+.stApp { background-color: #F4F6FB !important; }
+.block-container { padding-top: 1.5rem !important; }
+</style>
+""", unsafe_allow_html=True)
 
 def limpar_texto(txt):
     return str(txt).strip().upper()
@@ -17,7 +26,7 @@ def normalizar_colunas(df):
     return df
 
 # ──────────────────────────────────────────────────────────────
-# CARREGAMENTO DE REGRAS (LEITURA INTELIGENTE)
+# CARREGAMENTO DE REGRAS
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
 def carregar_regras():
@@ -37,60 +46,58 @@ def carregar_regras():
 df_usuarios, df_cadastro = carregar_regras()
 
 # ──────────────────────────────────────────────────────────────
-# SISTEMA DE LOGIN
+# LOGIN
 # ──────────────────────────────────────────────────────────────
 if 'autenticado' not in st.session_state:
     st.session_state.autenticado = False
 
 if not st.session_state.autenticado:
-    st.title("🔐 Acesso Milanov")
-    if df_usuarios is None:
-        st.error("Arquivo 'regras_milanov.xlsx' não encontrado.")
-        st.stop()
+    st.title("🔐 Login Milanov")
     u_in = st.text_input("Usuário")
     p_in = st.text_input("Senha", type="password")
     if st.button("Entrar"):
         u_clean = limpar_texto(u_in)
-        user_row = df_usuarios[df_usuarios['USUARIO'].apply(limpar_texto) == u_clean]
-        if not user_row.empty and str(p_in).strip() == str(user_row.iloc[0]['SENHA']).strip():
-            st.session_state.autenticado = True
-            st.rerun()
-        else: st.error("Dados incorretos.")
+        if df_usuarios is not None:
+            user_row = df_usuarios[df_usuarios['USUARIO'].apply(limpar_texto) == u_clean]
+            if not user_row.empty and str(p_in).strip() == str(user_row.iloc[0]['SENHA']).strip():
+                st.session_state.autenticado = True
+                st.rerun()
+        st.error("Credenciais inválidas.")
     st.stop()
 
 # ──────────────────────────────────────────────────────────────
-# PAINEL PRINCIPAL
+# INTERFACE DE AUDITORIA
 # ──────────────────────────────────────────────────────────────
-st.header("📊 Auditoria de Comissões")
-arq = st.file_uploader("📁 Relatório Corretora", type=['xlsx'])
+st.title("📊 Auditoria de Comissões")
+arq = st.file_uploader("Suba o Relatório da Corretora", type=['xlsx', 'csv'])
 
 if arq and df_cadastro is not None:
-    df_raw = normalizar_colunas(pd.read_excel(arq))
+    if arq.name.endswith('.csv'):
+        df_raw = normalizar_colunas(pd.read_csv(arq))
+    else:
+        df_raw = normalizar_colunas(pd.read_excel(arq))
     
-    # Parâmetros na Sidebar
-    st.sidebar.header("⚙️ Configurações de Câmbio")
+    # --- CONFIGURAÇÃO LATERAL ---
+    st.sidebar.header("⚙️ Parâmetros")
     v_usd_haiti = st.sidebar.number_input("Câmbio USD Haiti (BRL)", value=5.48)
-    v_htg_usd = st.sidebar.number_input("Cotação HTG / USD", value=130.0)
+    v_htg_usd = st.sidebar.number_input("Cotação HTG por 1 USD", value=131.0)
     
-    # Filtro de Data
-    if 'DATA' in df_raw.columns:
-        df_raw['DATA'] = pd.to_datetime(df_raw['DATA'])
-        d_min, d_max = df_raw['DATA'].min().date(), df_raw['DATA'].max().date()
-        periodo = st.sidebar.date_input("📅 Período:", [d_min, d_max])
-        if len(periodo) == 2:
-            df_raw = df_raw[(df_raw['DATA'].dt.date >= periodo[0]) & (df_raw['DATA'].dt.date <= periodo[1])]
-
-    # Cruzamento e Contagem
+    # --- PROCESSAMENTO ---
     df_raw['REALIZADO_POR'] = df_raw['REALIZADO_POR'].apply(limpar_texto)
     df_cadastro['REALIZADO_POR'] = df_cadastro['REALIZADO_POR'].apply(limpar_texto)
-    df_final = pd.merge(df_raw, df_cadastro, on='REALIZADO_POR', how='left')
+    
+    df = pd.merge(df_raw, df_cadastro, on='REALIZADO_POR', how='left')
+    df['NOME_CONSOLIDADO'] = df['NOME_CONSOLIDADO'].fillna(df['REALIZADO_POR'])
+    
+    if 'DATA' in df.columns:
+        df['DATA'] = pd.to_datetime(df['DATA'])
+        df = df.sort_values(by=['NOME_CONSOLIDADO', 'DATA'])
+    
+    df['ORDEM'] = df.groupby('NOME_CONSOLIDADO').cumcount() + 1
 
-    df_final['NOME_CONSOLIDADO'] = df_final['NOME_CONSOLIDADO'].fillna(df_final['REALIZADO_POR'])
-    df_final = df_final.sort_values(by=['NOME_CONSOLIDADO', 'DATA'])
-    df_final['ORDEM'] = df_final.groupby('NOME_CONSOLIDADO').cumcount() + 1
-
-    # --- MOTOR DE CÁLCULO (REGRAS ATUALIZADAS) ---
+    # --- MOTOR DE CÁLCULO V8.7 ---
     def motor(row):
+        # BASE: Conforme sua imagem, usamos COSTO_DE_ENVIO_BRL
         custo = row.get('COSTO_DE_ENVIO_BRL', 0)
         v_dest = row.get('VALOR_DESTINO', 0)
         moeda = limpar_texto(row.get('MOEDA_DESTINO', ''))
@@ -98,51 +105,35 @@ if arq and df_cadastro is not None:
         pacote = str(row.get('ID_PACOTE_COMISSAO', '20'))
         ordem = row.get('ORDEM', 1)
         
-        # 1. Regra Pacote 40 (Sempre 60%)
-        if '40' in pacote: 
-            return custo * 0.60
+        # 1. Pacote Especial 40
+        if '40' in pacote: return custo * 0.60
         
-        # 2. Conversão para USD (Haiti)
-        v_usd = v_dest / v_htg_usd if (moeda == 'HTG' or pais == 'HAITI') else v_dest
-
-        # 3. REGRA HAITI
+        # 2. Lógica HAITI (Checagem de Barreira de 100 USD)
         if (moeda == 'HTG' or pais == 'HAITI'):
-            if v_usd <= 100:
-                return 2.50 * v_usd_haiti  # Abaixo de 100 USD: Fixo 2.50 USD
+            v_usd_equivalente = v_dest / v_htg_usd
+            
+            if v_usd_equivalente <= 100:
+                # Regra: Abaixo de 100 USD paga Fixo (2.50 USD)
+                return 2.50 * v_usd_haiti
             else:
-                # Acima de 100 USD: Escalonamento Haiti
+                # Acima de 100 USD: Segue o Escalonamento
                 return custo * 0.60 if ordem > 100 else custo * 0.50
 
-        # 4. REGRA TODOS OS OUTROS PAÍSES
+        # 3. OUTROS PAÍSES (Regra Geral)
         else:
-            if ordem <= 50:
-                return custo * 0.30  # Até 50 envios: 30%
-            elif ordem <= 100:
-                return custo * 0.50  # 51 a 100 envios: 50%
-            else:
-                return custo * 0.60  # Acima de 100 envios: 60%
+            if ordem <= 50: return custo * 0.30
+            elif ordem <= 100: return custo * 0.50
+            else: return custo * 0.60
 
-    df_final['VALOR_COMISSAO'] = df_final.apply(motor, axis=1)
+    df['VALOR_COMISSAO'] = df.apply(motor, axis=1)
 
-    # Filtro Comercial
-    if 'COMERCIAL' in df_final.columns:
-        lista_com = ["TODOS"] + sorted(df_final['COMERCIAL'].dropna().unique().tolist())
-        sel_com = st.sidebar.selectbox("👤 Comercial:", lista_com)
-        if sel_com != "TODOS":
-            df_final = df_final[df_final['COMERCIAL'] == sel_com]
-
-    # Exibição
-    resumo = df_final.groupby(['COMERCIAL', 'NOME_CONSOLIDADO'])['VALOR_COMISSAO'].sum().reset_index()
-    st.subheader("📋 Resumo Consolidado")
+    # --- RESULTADOS ---
+    resumo = df.groupby(['COMERCIAL', 'NOME_CONSOLIDADO'])['VALOR_COMISSAO'].sum().reset_index()
     st.dataframe(resumo.style.format({'VALOR_COMISSAO': 'R$ {:.2f}'}), use_container_width=True)
 
-    with st.expander("🔍 Detalhar por Agente"):
-        sel = st.selectbox("Agente:", ["Selecione..."] + sorted(resumo['NOME_CONSOLIDADO'].unique().tolist()))
-        if sel != "Selecione...":
-            df_ag = df_final[df_final['NOME_CONSOLIDADO'] == sel].copy()
-            st.metric("Total Comissões", f"R$ {df_ag['VALOR_COMISSAO'].sum():,.2f}")
-            st.table(df_ag[['ORDEM', 'DATA', 'PAIS_DESTINO', 'VALOR_DESTINO', 'VALOR_COMISSAO']].head(100))
-            
-            buf = io.BytesIO()
-            df_ag.to_excel(buf, index=False)
-            st.download_button(f"📥 Baixar Excel {sel}", buf.getvalue(), f"{sel}.xlsx")
+    # Botão de Exportação
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine='openpyxl') as writer:
+        resumo.to_excel(writer, index=False, sheet_name='Resumo')
+        df.to_excel(writer, index=False, sheet_name='Detalhes')
+    st.download_button("📥 Baixar Auditoria Completa", buf.getvalue(), "auditoria_milanov.xlsx")
